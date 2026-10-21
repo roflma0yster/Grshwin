@@ -14,7 +14,274 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      ear_training_progress: {
+        Row: {
+          attempts: number
+          correct: number
+          created_at: string
+          exercise: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          attempts?: number
+          correct?: number
+          created_at?: string
+          exercise: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          attempts?: number
+          correct?: number
+          created_at?: string
+          exercise?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      pieces: {
+        Row: {
+          composer: string
+          created_at: string
+          default_tempo: number
+          difficulty: string
+          genre: string
+          id: string
+          key_signature: string
+          license: string
+          musicxml_status: string
+          musicxml_url: string | null
+          source_url: string | null
+          title: string
+        }
+        Insert: {
+          composer: string
+          created_at?: string
+          default_tempo?: number
+          difficulty: string
+          genre: string
+          id?: string
+          key_signature: string
+          license: string
+          musicxml_status?: string
+          musicxml_url?: string | null
+          source_url?: string | null
+          title: string
+        }
+        Update: {
+          composer?: string
+          created_at?: string
+          default_tempo?: number
+          difficulty?: string
+          genre?: string
+          id?: string
+          key_signature?: string
+          license?: string
+          musicxml_status?: string
+          musicxml_url?: string | null
+          source_url?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
+      practice_plans: {
+        Row: {
+          created_at: string
+          id: string
+          plan: Json
+          user_id: string
+          week_start: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          plan: Json
+          user_id: string
+          week_start?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          plan?: Json
+          user_id?: string
+          week_start?: string
+        }
+        Relationships: []
+      }
+      practice_sessions: {
+        Row: {
+          completed_items: Json
+          created_at: string
+          day_index: number
+          hard_note: string | null
+          id: string
+          minutes: number
+          plan_id: string | null
+          session_date: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_items?: Json
+          created_at?: string
+          day_index: number
+          hard_note?: string | null
+          id?: string
+          minutes?: number
+          plan_id?: string | null
+          session_date?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_items?: Json
+          created_at?: string
+          day_index?: number
+          hard_note?: string | null
+          id?: string
+          minutes?: number
+          plan_id?: string | null
+          session_date?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "practice_sessions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "practice_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          daily_minutes: number | null
+          display_name: string | null
+          genre: string | null
+          goal: string | null
+          id: string
+          input_method: string | null
+          onboarded: boolean
+          proficiency: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          daily_minutes?: number | null
+          display_name?: string | null
+          genre?: string | null
+          goal?: string | null
+          id: string
+          input_method?: string | null
+          onboarded?: boolean
+          proficiency?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          daily_minutes?: number | null
+          display_name?: string | null
+          genre?: string | null
+          goal?: string | null
+          id?: string
+          input_method?: string | null
+          onboarded?: boolean
+          proficiency?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      scores: {
+        Row: {
+          accuracy: number | null
+          created_at: string
+          id: string
+          piece_id: string | null
+          tempo: number | null
+          user_id: string
+        }
+        Insert: {
+          accuracy?: number | null
+          created_at?: string
+          id?: string
+          piece_id?: string | null
+          tempo?: number | null
+          user_id: string
+        }
+        Update: {
+          accuracy?: number | null
+          created_at?: string
+          id?: string
+          piece_id?: string | null
+          tempo?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scores_piece_id_fkey"
+            columns: ["piece_id"]
+            isOneToOne: false
+            referencedRelation: "pieces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      theory_progress: {
+        Row: {
+          completed: boolean
+          created_at: string
+          id: string
+          topic: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          id?: string
+          topic: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          id?: string
+          topic?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_pieces: {
+        Row: {
+          composer: string | null
+          created_at: string
+          file_path: string | null
+          id: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          composer?: string | null
+          created_at?: string
+          file_path?: string | null
+          id?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          composer?: string | null
+          created_at?: string
+          file_path?: string | null
+          id?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
