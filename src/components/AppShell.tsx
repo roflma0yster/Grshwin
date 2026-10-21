@@ -1,6 +1,6 @@
 import { Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, type ReactNode } from "react";
 import { Home, Library, CalendarDays, BookOpen, Ear, Upload, Gauge, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { profileQuery } from "@/lib/data";
@@ -91,7 +91,7 @@ export function AppShell() {
   );
 }
 
-export function PageHeader({ title, subtitle, children }: { title: string; subtitle?: string; children?: React.ReactNode }) {
+export function PageHeader({ title, subtitle, children }: { title: string; subtitle?: string; children?: ReactNode }) {
   return (
     <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
       <div>
