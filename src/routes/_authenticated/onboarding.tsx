@@ -27,7 +27,7 @@ function Onboarding() {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
-  const s = STEPS[step];
+  const s = STEPS[step]!;
 
   async function finish() {
     setSaving(true);
