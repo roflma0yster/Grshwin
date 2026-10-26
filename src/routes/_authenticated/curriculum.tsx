@@ -112,7 +112,7 @@ function Card({ title, children, className }: { title: string; children: ReactNo
 
 function SessionLog({ planId, dayIndex, checklist, defaultMinutes, session }: {
   planId: string; dayIndex: number; checklist: string[]; defaultMinutes: number;
-  session?: { completed_items: unknown; minutes: number; hard_note: string | null };
+  session: { completed_items: unknown; minutes: number; hard_note: string | null } | undefined;
 }) {
   const qc = useQueryClient();
   const [done, setDone] = useState<string[]>((session?.completed_items as string[]) ?? []);
@@ -128,7 +128,7 @@ function SessionLog({ planId, dayIndex, checklist, defaultMinutes, session }: {
       { onConflict: "plan_id,day_index" },
     );
     setSaving(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("Session saved");
     qc.invalidateQueries({ queryKey: ["sessions"] });
   }

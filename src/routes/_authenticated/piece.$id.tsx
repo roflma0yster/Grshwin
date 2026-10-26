@@ -65,15 +65,15 @@ function PiecePlayer() {
 
     const startM = loop ? from - 1 : 0;
     const endM = loop ? to : measureCount;
-    const t0 = parsed.measureStarts[startM];
-    const t1 = parsed.measureStarts[endM];
+    const t0 = parsed.measureStarts[startM] ?? 0;
+    const t1 = parsed.measureStarts[endM] ?? 0;
     const beat = 60 / tempo;
     const notes = parsed.notes.filter(
       (n) => n.measure >= startM && n.measure < endM && (hands === "both" || (hands === "right" ? n.staff === 1 : n.staff === 2)),
     );
     notes.forEach((n) => transport.schedule((time) => synth.triggerAttackRelease(n.pitch, n.duration * beat * 0.95, time), (n.start - t0) * beat));
     for (let m = startM; m < endM; m++) {
-      transport.schedule(() => setCurrent(m + 1), (parsed.measureStarts[m] - t0) * beat);
+      transport.schedule(() => setCurrent(m + 1), ((parsed.measureStarts[m] ?? 0) - t0) * beat);
     }
     if (metronome) {
       for (let b = 0; b < t1 - t0; b++) {
@@ -125,7 +125,7 @@ function PiecePlayer() {
         </Button>
         <div className="space-y-2">
           <div className="flex justify-between text-sm"><span>Tempo</span><span className="font-semibold">♩ = {tempo}</span></div>
-          <Slider min={30} max={180} step={2} value={[tempo]} onValueChange={([v]) => setTempo(v)} disabled={playing} />
+          <Slider min={30} max={180} step={2} value={[tempo]} onValueChange={([v]) => setTempo(v ?? 80)} disabled={playing} />
         </div>
         <div className="flex items-center gap-2">
           <Switch id="met" checked={metronome} onCheckedChange={setMetronome} disabled={playing} />

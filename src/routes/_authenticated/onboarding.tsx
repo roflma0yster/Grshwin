@@ -34,15 +34,15 @@ function Onboarding() {
     const { data: u } = await supabase.auth.getUser();
     const { error } = await supabase.from("profiles").upsert({
       id: u.user!.id,
-      genre: answers.genre,
-      proficiency: answers.proficiency,
-      goal: answers.goal,
-      daily_minutes: Number(answers.daily_minutes),
-      input_method: answers.input_method,
+      genre: answers["genre"] ?? null,
+      proficiency: answers["proficiency"] ?? null,
+      goal: answers["goal"] ?? null,
+      daily_minutes: Number(answers["daily_minutes"]),
+      input_method: answers["input_method"] ?? null,
       onboarded: true,
     });
     setSaving(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     await qc.invalidateQueries({ queryKey: ["profile"] });
     navigate({ to: "/dashboard" });
   }
