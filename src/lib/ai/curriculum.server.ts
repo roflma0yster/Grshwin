@@ -100,6 +100,6 @@ ${library}`;
   // Guarantee every piece exists in the library.
   const ids = new Set(input.pieces.map((p) => p.id));
   const fallback = input.pieces[0]?.id;
-  plan.days = plan.days.slice(0, 7).map((d) => ({ ...d, pieceId: ids.has(d.pieceId) ? d.pieceId : fallback }));
+  plan.days = plan.days.slice(0, 7).map((d) => ({ ...d, pieceId: ids.has(d.pieceId) ? d.pieceId : (fallback ?? d.pieceId) }));
   return plan;
 }

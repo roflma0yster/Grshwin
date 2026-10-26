@@ -12,7 +12,15 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedCurriculumRouteImport } from './routes/_authenticated/curriculum'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedEarTrainingRouteImport } from './routes/_authenticated/ear-training'
+import { Route as AuthenticatedLibraryRouteImport } from './routes/_authenticated/library'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
+import { Route as AuthenticatedScoringRouteImport } from './routes/_authenticated/scoring'
+import { Route as AuthenticatedTheoryRouteImport } from './routes/_authenticated/theory'
+import { Route as AuthenticatedUploadRouteImport } from './routes/_authenticated/upload'
+import { Route as AuthenticatedPieceIdRouteImport } from './routes/_authenticated/piece.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,40 +36,135 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedCurriculumRoute = AuthenticatedCurriculumRouteImport.update({
+  id: '/curriculum',
+  path: '/curriculum',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedEarTrainingRoute =
+  AuthenticatedEarTrainingRouteImport.update({
+    id: '/ear-training',
+    path: '/ear-training',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedLibraryRoute = AuthenticatedLibraryRouteImport.update({
+  id: '/library',
+  path: '/library',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedScoringRoute = AuthenticatedScoringRouteImport.update({
+  id: '/scoring',
+  path: '/scoring',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedTheoryRoute = AuthenticatedTheoryRouteImport.update({
+  id: '/theory',
+  path: '/theory',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedUploadRoute = AuthenticatedUploadRouteImport.update({
+  id: '/upload',
+  path: '/upload',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPieceIdRoute = AuthenticatedPieceIdRouteImport.update({
+  id: '/piece/$id',
+  path: '/piece/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/curriculum': typeof AuthenticatedCurriculumRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/ear-training': typeof AuthenticatedEarTrainingRoute
+  '/library': typeof AuthenticatedLibraryRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/scoring': typeof AuthenticatedScoringRoute
+  '/theory': typeof AuthenticatedTheoryRoute
+  '/upload': typeof AuthenticatedUploadRoute
+  '/piece/$id': typeof AuthenticatedPieceIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/curriculum': typeof AuthenticatedCurriculumRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/ear-training': typeof AuthenticatedEarTrainingRoute
+  '/library': typeof AuthenticatedLibraryRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/scoring': typeof AuthenticatedScoringRoute
+  '/theory': typeof AuthenticatedTheoryRoute
+  '/upload': typeof AuthenticatedUploadRoute
+  '/piece/$id': typeof AuthenticatedPieceIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/curriculum': typeof AuthenticatedCurriculumRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/ear-training': typeof AuthenticatedEarTrainingRoute
+  '/_authenticated/library': typeof AuthenticatedLibraryRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
+  '/_authenticated/scoring': typeof AuthenticatedScoringRoute
+  '/_authenticated/theory': typeof AuthenticatedTheoryRoute
+  '/_authenticated/upload': typeof AuthenticatedUploadRoute
+  '/_authenticated/piece/$id': typeof AuthenticatedPieceIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/onboarding'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/curriculum'
+    | '/dashboard'
+    | '/ear-training'
+    | '/library'
+    | '/onboarding'
+    | '/scoring'
+    | '/theory'
+    | '/upload'
+    | '/piece/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/onboarding'
+  to:
+    | '/'
+    | '/auth'
+    | '/curriculum'
+    | '/dashboard'
+    | '/ear-training'
+    | '/library'
+    | '/onboarding'
+    | '/scoring'
+    | '/theory'
+    | '/upload'
+    | '/piece/$id'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/curriculum'
+    | '/_authenticated/dashboard'
+    | '/_authenticated/ear-training'
+    | '/_authenticated/library'
     | '/_authenticated/onboarding'
+    | '/_authenticated/scoring'
+    | '/_authenticated/theory'
+    | '/_authenticated/upload'
+    | '/_authenticated/piece/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -93,6 +196,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/curriculum': {
+      id: '/_authenticated/curriculum'
+      path: '/curriculum'
+      fullPath: '/curriculum'
+      preLoaderRoute: typeof AuthenticatedCurriculumRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/ear-training': {
+      id: '/_authenticated/ear-training'
+      path: '/ear-training'
+      fullPath: '/ear-training'
+      preLoaderRoute: typeof AuthenticatedEarTrainingRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/library': {
+      id: '/_authenticated/library'
+      path: '/library'
+      fullPath: '/library'
+      preLoaderRoute: typeof AuthenticatedLibraryRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/onboarding': {
       id: '/_authenticated/onboarding'
       path: '/onboarding'
@@ -100,15 +231,59 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOnboardingRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/scoring': {
+      id: '/_authenticated/scoring'
+      path: '/scoring'
+      fullPath: '/scoring'
+      preLoaderRoute: typeof AuthenticatedScoringRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/theory': {
+      id: '/_authenticated/theory'
+      path: '/theory'
+      fullPath: '/theory'
+      preLoaderRoute: typeof AuthenticatedTheoryRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/upload': {
+      id: '/_authenticated/upload'
+      path: '/upload'
+      fullPath: '/upload'
+      preLoaderRoute: typeof AuthenticatedUploadRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/piece/$id': {
+      id: '/_authenticated/piece/$id'
+      path: '/piece/$id'
+      fullPath: '/piece/$id'
+      preLoaderRoute: typeof AuthenticatedPieceIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedCurriculumRoute: typeof AuthenticatedCurriculumRoute
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedEarTrainingRoute: typeof AuthenticatedEarTrainingRoute
+  AuthenticatedLibraryRoute: typeof AuthenticatedLibraryRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
+  AuthenticatedScoringRoute: typeof AuthenticatedScoringRoute
+  AuthenticatedTheoryRoute: typeof AuthenticatedTheoryRoute
+  AuthenticatedUploadRoute: typeof AuthenticatedUploadRoute
+  AuthenticatedPieceIdRoute: typeof AuthenticatedPieceIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedCurriculumRoute: AuthenticatedCurriculumRoute,
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedEarTrainingRoute: AuthenticatedEarTrainingRoute,
+  AuthenticatedLibraryRoute: AuthenticatedLibraryRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
+  AuthenticatedScoringRoute: AuthenticatedScoringRoute,
+  AuthenticatedTheoryRoute: AuthenticatedTheoryRoute,
+  AuthenticatedUploadRoute: AuthenticatedUploadRoute,
+  AuthenticatedPieceIdRoute: AuthenticatedPieceIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
