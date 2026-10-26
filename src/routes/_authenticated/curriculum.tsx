@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { Loader2, Sparkles } from "lucide-react";
 import { PageHeader } from "@/components/AppShell";
@@ -101,7 +101,7 @@ function Curriculum() {
   );
 }
 
-function Card({ title, children, className }: { title: string; children: React.ReactNode; className?: string }) {
+function Card({ title, children, className }: { title: string; children: ReactNode; className?: string }) {
   return (
     <section className={cn("rounded-2xl border bg-card p-5", className)}>
       <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-primary">{title}</h3>
