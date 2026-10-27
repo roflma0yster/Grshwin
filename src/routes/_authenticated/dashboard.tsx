@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/head";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Flame, Clock, Library, BookOpen, Ear, Gauge } from "lucide-react";
@@ -6,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { computeStreak, latestPlanQuery, piecesQuery, profileQuery, sessionsQuery, todayIndex } from "@/lib/data";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
-  head: () => ({ meta: [{ title: "Home — KeyCoach" }, { name: "description", content: "Today's practice at a glance." }] }),
+  head: () => pageHead("Home — KeyCoach", "Today's practice at a glance."),
   component: Dashboard,
 });
 

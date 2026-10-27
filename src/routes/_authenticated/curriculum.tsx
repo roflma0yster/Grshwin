@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/head";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -15,7 +16,7 @@ import { latestPlanQuery, piecesQuery, profileQuery, sessionsQuery, todayIndex }
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/curriculum")({
-  head: () => ({ meta: [{ title: "Weekly plan — KeyCoach" }, { name: "description", content: "Your personalised weekly practice plan." }] }),
+  head: () => pageHead("Weekly plan — KeyCoach", "Your personalised weekly practice plan."),
   component: Curriculum,
 });
 

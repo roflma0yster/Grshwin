@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/head";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -12,7 +13,7 @@ import { demoMusicXml, parseNotes } from "@/lib/music";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/piece/$id")({
-  head: () => ({ meta: [{ title: "Piece player — KeyCoach" }, { name: "description", content: "Practise a piece with tempo, looping and metronome." }] }),
+  head: () => pageHead("Piece player — KeyCoach", "Practise a piece with tempo, looping and metronome."),
   component: PiecePlayer,
 });
 

@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/head";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
@@ -7,7 +8,7 @@ import { piecesQuery } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/library")({
-  head: () => ({ meta: [{ title: "Library — KeyCoach" }, { name: "description", content: "Public-domain repertoire for intermediate pianists." }] }),
+  head: () => pageHead("Library — KeyCoach", "Public-domain repertoire for intermediate pianists."),
   component: LibraryPage,
 });
 
