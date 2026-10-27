@@ -15,3 +15,6 @@
 - Curriculum output is validated server-side so every `pieceId` exists in `pieces` — the AI must never invent repertoire.
 - Sheet music (OpenSheetMusicDisplay) and audio (Tone.js) are dynamically imported in effects/handlers — both are browser-only.
 - Pieces without a MusicXML file fall back to a generated demo excerpt (`src/lib/music.ts`) so the player always works.
+- Uploaded scores use authenticated server validation, private owner-scoped storage, and `user_pieces`; never place uploads into the shared catalog.
+- Learning exercises use curated browser-safe data and persist user-owned progress; audio is initiated by user gestures.
+- Performance scores measure the fixed on-screen/MIDI exercise, not microphone recognition or arbitrary repertoire; this keeps feedback based on captured notes.

@@ -20,6 +20,7 @@ import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authentic
 import { Route as AuthenticatedScoringRouteImport } from './routes/_authenticated/scoring'
 import { Route as AuthenticatedTheoryRouteImport } from './routes/_authenticated/theory'
 import { Route as AuthenticatedUploadRouteImport } from './routes/_authenticated/upload'
+import { Route as AuthenticatedMyPieceIdRouteImport } from './routes/_authenticated/my-piece.$id'
 import { Route as AuthenticatedPieceIdRouteImport } from './routes/_authenticated/piece.$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -77,6 +78,11 @@ const AuthenticatedUploadRoute = AuthenticatedUploadRouteImport.update({
   path: '/upload',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMyPieceIdRoute = AuthenticatedMyPieceIdRouteImport.update({
+  id: '/my-piece/$id',
+  path: '/my-piece/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedPieceIdRoute = AuthenticatedPieceIdRouteImport.update({
   id: '/piece/$id',
   path: '/piece/$id',
@@ -94,6 +100,7 @@ export interface FileRoutesByFullPath {
   '/scoring': typeof AuthenticatedScoringRoute
   '/theory': typeof AuthenticatedTheoryRoute
   '/upload': typeof AuthenticatedUploadRoute
+  '/my-piece/$id': typeof AuthenticatedMyPieceIdRoute
   '/piece/$id': typeof AuthenticatedPieceIdRoute
 }
 export interface FileRoutesByTo {
@@ -107,6 +114,7 @@ export interface FileRoutesByTo {
   '/scoring': typeof AuthenticatedScoringRoute
   '/theory': typeof AuthenticatedTheoryRoute
   '/upload': typeof AuthenticatedUploadRoute
+  '/my-piece/$id': typeof AuthenticatedMyPieceIdRoute
   '/piece/$id': typeof AuthenticatedPieceIdRoute
 }
 export interface FileRoutesById {
@@ -122,6 +130,7 @@ export interface FileRoutesById {
   '/_authenticated/scoring': typeof AuthenticatedScoringRoute
   '/_authenticated/theory': typeof AuthenticatedTheoryRoute
   '/_authenticated/upload': typeof AuthenticatedUploadRoute
+  '/_authenticated/my-piece/$id': typeof AuthenticatedMyPieceIdRoute
   '/_authenticated/piece/$id': typeof AuthenticatedPieceIdRoute
 }
 export interface FileRouteTypes {
@@ -137,6 +146,7 @@ export interface FileRouteTypes {
     | '/scoring'
     | '/theory'
     | '/upload'
+    | '/my-piece/$id'
     | '/piece/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -150,6 +160,7 @@ export interface FileRouteTypes {
     | '/scoring'
     | '/theory'
     | '/upload'
+    | '/my-piece/$id'
     | '/piece/$id'
   id:
     | '__root__'
@@ -164,6 +175,7 @@ export interface FileRouteTypes {
     | '/_authenticated/scoring'
     | '/_authenticated/theory'
     | '/_authenticated/upload'
+    | '/_authenticated/my-piece/$id'
     | '/_authenticated/piece/$id'
   fileRoutesById: FileRoutesById
 }
@@ -252,6 +264,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedUploadRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/my-piece/$id': {
+      id: '/_authenticated/my-piece/$id'
+      path: '/my-piece/$id'
+      fullPath: '/my-piece/$id'
+      preLoaderRoute: typeof AuthenticatedMyPieceIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/piece/$id': {
       id: '/_authenticated/piece/$id'
       path: '/piece/$id'
@@ -271,6 +290,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedScoringRoute: typeof AuthenticatedScoringRoute
   AuthenticatedTheoryRoute: typeof AuthenticatedTheoryRoute
   AuthenticatedUploadRoute: typeof AuthenticatedUploadRoute
+  AuthenticatedMyPieceIdRoute: typeof AuthenticatedMyPieceIdRoute
   AuthenticatedPieceIdRoute: typeof AuthenticatedPieceIdRoute
 }
 
@@ -283,6 +303,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedScoringRoute: AuthenticatedScoringRoute,
   AuthenticatedTheoryRoute: AuthenticatedTheoryRoute,
   AuthenticatedUploadRoute: AuthenticatedUploadRoute,
+  AuthenticatedMyPieceIdRoute: AuthenticatedMyPieceIdRoute,
   AuthenticatedPieceIdRoute: AuthenticatedPieceIdRoute,
 }
 
