@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/head";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -8,7 +9,7 @@ import { LEVELS } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
-  head: () => ({ meta: [{ title: "Set up your practice — KeyCoach" }, { name: "description", content: "Tell KeyCoach about your playing." }] }),
+  head: () => pageHead("Set up your practice — KeyCoach", "Tell KeyCoach about your playing."),
   component: Onboarding,
 });
 
