@@ -14,6 +14,7 @@
 - AI calls live in `src/lib/ai/*.server.ts`, invoked from `*.functions.ts` server functions with `requireSupabaseAuth` — keeps keys and prompts server-side.
 - Curriculum output is validated server-side so every `pieceId` exists in `pieces` — the AI must never invent repertoire.
 - Sheet music (OpenSheetMusicDisplay) and audio (Tone.js) are dynamically imported in effects/handlers — both are browser-only.
+- Resolve automation-events to its native ES module — its legacy browser bundle breaks audio initialization when shared dependencies are bundled.
 - Pieces without a MusicXML file fall back to a generated demo excerpt (`src/lib/music.ts`) so the player always works.
 - MusicXML playback aligns all parts on shared bar boundaries, sustains ties, and clips notes to practice ranges — uploaded scores must preserve their musical timing.
 - Uploaded scores use authenticated server validation, private owner-scoped storage, and `user_pieces`; never place uploads into the shared catalog.
