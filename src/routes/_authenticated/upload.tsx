@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState, type FormEvent } from "react";
-import { Upload, FileMusic, ArrowUpRight } from "lucide-react";
+import { Upload, FileMusic, ArrowUpRight, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,7 @@ function UploadPage() {
   const [composer, setComposer] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const { data: pieces = [], isLoading } = useQuery({ queryKey: ["user-pieces"], queryFn: async () => {
+  const { data: pieces = [], isLoading, error: listError, refetch } = useQuery({ queryKey: ["user-pieces"], queryFn: async () => {
     const { data, error } = await supabase.from("user_pieces").select("id,title,composer,created_at,file_path").order("created_at", { ascending: false });
     if (error) throw error; return data;
   } });
@@ -51,6 +51,6 @@ function UploadPage() {
       <div className="space-y-4"><div className="space-y-2"><Label htmlFor="score-title">Title</Label><Input id="score-title" required maxLength={120} value={title} onChange={(e) => setTitle(e.target.value)} disabled={busy} /></div><div className="space-y-2"><Label htmlFor="score-composer">Composer</Label><Input id="score-composer" maxLength={120} value={composer} onChange={(e) => setComposer(e.target.value)} disabled={busy} /></div><Button type="submit" disabled={!file || !title.trim() || busy}><Upload className="h-4 w-4" />{busy ? "Uploading…" : "Upload score"}</Button>{error && <p role="alert" className="text-sm text-destructive">{error}</p>}</div>
     </form>
     <h2 className="mt-8 mb-4 font-display text-2xl">Uploaded repertoire</h2>
-    {isLoading ? <p className="text-muted-foreground">Loading scores…</p> : !pieces.length ? <p className="py-8 text-muted-foreground">No scores uploaded yet.</p> : <div className="divide-y">{pieces.map((p) => <Link key={p.id} to="/my-piece/$id" params={{ id: p.id }} className="flex items-center justify-between gap-4 py-5 hover:text-primary"><div><h3 className="font-display text-xl">{p.title}</h3><p className="text-sm text-muted-foreground">{p.composer || "Composer not specified"}</p></div><ArrowUpRight className="h-5 w-5 shrink-0" /></Link>)}</div>}
+    {isLoading ? <p className="text-muted-foreground">Loading scores…</p> : listError ? <div className="space-y-3 py-6"><p role="alert" className="text-destructive">Your scores could not be loaded.</p><Button variant="outline" onClick={() => refetch()}><RotateCcw className="h-4 w-4" />Retry</Button></div> : !pieces.length ? <p className="py-8 text-muted-foreground">No scores uploaded yet.</p> : <div className="divide-y">{pieces.map((p) => <Link key={p.id} to="/my-piece/$id" params={{ id: p.id }} className="flex items-center justify-between gap-4 py-5 hover:text-primary"><div><h3 className="font-display text-xl">{p.title}</h3><p className="text-sm text-muted-foreground">{p.composer || "Composer not specified"}</p></div><ArrowUpRight className="h-5 w-5 shrink-0" /></Link>)}</div>}
   </>;
 }
