@@ -56,7 +56,7 @@ export function ScorePlayback({ xml }: { xml: string }) {
       if (loop) { transport.loop = true; transport.loopStart = 0; transport.loopEnd = (end - begin) * beat; }
       else transport.schedule((time) => Tone.getDraw().schedule(stop, time), (end - begin) * beat + 0.5);
       transport.start("+0.1"); setPlaying(true);
-    } catch { dispose(); stopRef.current = () => {}; setPlaying(false); toast.error("Playback could not start. Please try again."); }
+    } catch (error) { console.error("Score playback failed", error); dispose(); stopRef.current = () => {}; setPlaying(false); toast.error("Playback could not start. Please try again."); }
     finally { setBusy(false); }
   }
   const locked = playing || busy;
