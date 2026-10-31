@@ -19,8 +19,6 @@ export const Route = createFileRoute("/_authenticated/scoring")({
 const MELODY = [60, 62, 64, 65, 67, 65, 64, 60];
 const KEYS = [{ midi: 60, name: "C4" }, { midi: 62, name: "D4" }, { midi: 64, name: "E4" }, { midi: 65, name: "F4" }, { midi: 67, name: "G4" }, { midi: 69, name: "A4" }, { midi: 71, name: "B4" }];
 type Hit = { correct: boolean; offset: number };
-type MidiInput = { name?: string | null; onmidimessage: ((event: { data: Uint8Array }) => void) | null };
-type MidiAccess = { inputs: Map<string, MidiInput>; onstatechange: (() => void) | null };
 
 function Scoring() {
   const qc = useQueryClient();
@@ -36,7 +34,7 @@ function Scoring() {
   const startTime = useRef(0);
   const results = useRef<Hit[]>([]);
   const timers = useRef<number[]>([]);
-  const midiRef = useRef<MidiAccess | null>(null);
+  const midiRef = useRef<MIDIAccess | null>(null);
   const playRef = useRef<(note: number) => void>(() => {});
   const { data: history = [] } = useQuery({ queryKey: ["score-history"], queryFn: async () => {
     const { data, error } = await supabase.from("scores").select("*").order("created_at", { ascending: false }).limit(10);
@@ -68,13 +66,13 @@ function Scoring() {
     finally { setAudioBusy(false); }
   }
   async function connect() {
-    const nav = navigator as Navigator & { requestMIDIAccess?: () => Promise<MidiAccess> };
-    if (!nav.requestMIDIAccess) { toast.error("MIDI is unavailable in this browser. Use the piano keys below."); return; }
+    if (!navigator.requestMIDIAccess) { toast.error("MIDI is unavailable in this browser. Use the piano keys below."); return; }
     try {
-      const access = await nav.requestMIDIAccess(); midiRef.current = access;
+      const access = await navigator.requestMIDIAccess(); midiRef.current = access;
       const bind = () => {
         setMidiName([...access.inputs.values()].map((i) => i.name || "MIDI piano").join(", ") || "No MIDI piano connected");
         access.inputs.forEach((input) => { input.onmidimessage = (e) => {
+          if (!e.data) return;
           const [status = 0, note = 0, velocity = 0] = e.data;
           if ((status & 0xf0) === 0x90 && velocity > 0) playRef.current(note);
         }; });
