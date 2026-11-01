@@ -199,26 +199,41 @@ export type Database = {
       scores: {
         Row: {
           accuracy: number | null
+          correct_notes: number | null
           created_at: string
+          exercise: string | null
           id: string
+          missed_notes: number | null
           piece_id: string | null
           tempo: number | null
+          timing_ms: number | null
+          total_notes: number | null
           user_id: string
         }
         Insert: {
           accuracy?: number | null
+          correct_notes?: number | null
           created_at?: string
+          exercise?: string | null
           id?: string
+          missed_notes?: number | null
           piece_id?: string | null
           tempo?: number | null
+          timing_ms?: number | null
+          total_notes?: number | null
           user_id: string
         }
         Update: {
           accuracy?: number | null
+          correct_notes?: number | null
           created_at?: string
+          exercise?: string | null
           id?: string
+          missed_notes?: number | null
           piece_id?: string | null
           tempo?: number | null
+          timing_ms?: number | null
+          total_notes?: number | null
           user_id?: string
         }
         Relationships: [
