@@ -8,7 +8,7 @@ import { piecesQuery } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/library")({
-  head: () => pageHead("Library — KeyCoach", "Public-domain repertoire for intermediate pianists."),
+  head: () => pageHead("Library — Grshwin", "Public-domain repertoire for intermediate pianists."),
   component: LibraryPage,
 });
 

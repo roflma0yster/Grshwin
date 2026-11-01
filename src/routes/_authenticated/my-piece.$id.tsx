@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { pageHead } from "@/lib/head";
 
 export const Route = createFileRoute("/_authenticated/my-piece/$id")({
-  head: () => pageHead("Your score player — KeyCoach", "Read and play your privately uploaded piano score."),
+  head: () => pageHead("Your score player — Grshwin", "Read and play your privately uploaded piano score."),
   component: UserPiece,
 });
 

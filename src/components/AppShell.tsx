@@ -41,7 +41,7 @@ export function AppShell() {
     <div className="min-h-screen bg-background pb-20 md:pb-0 md:pl-56">
       <aside className="fixed inset-y-0 left-0 hidden w-56 flex-col border-r bg-sidebar p-4 md:flex">
         <Link to="/dashboard" className="mb-8 px-2 font-display text-2xl">
-          Key<span className="text-primary">Coach</span>
+          Grshwin
         </Link>
         <nav className="flex flex-1 flex-col gap-1">
           {NAV.map(({ to, label, icon: Icon }) => (
@@ -64,7 +64,7 @@ export function AppShell() {
 
       <header className="flex items-center justify-between border-b px-4 py-3 md:hidden">
         <span className="font-display text-xl">
-          Key<span className="text-primary">Coach</span>
+          Grshwin
         </span>
         <button onClick={signOut} aria-label="Sign out" className="text-muted-foreground">
           <LogOut className="h-5 w-5" />

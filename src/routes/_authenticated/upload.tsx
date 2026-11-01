@@ -14,7 +14,7 @@ import { validateScore } from "@/lib/score-validation";
 import { pageHead } from "@/lib/head";
 
 export const Route = createFileRoute("/_authenticated/upload")({
-  head: () => pageHead("Your scores — KeyCoach", "Upload and practise your own private MusicXML piano scores."),
+  head: () => pageHead("Your scores — Grshwin", "Upload and practise your own private MusicXML piano scores."),
   component: UploadPage,
 });
 

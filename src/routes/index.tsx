@@ -5,9 +5,9 @@ import hero from "@/assets/hero-piano.jpg";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "KeyCoach — Your intermediate piano coach" },
+      { title: "Grshwin — Your intermediate piano coach" },
       { name: "description", content: "Daily practice plans, large readable sheet music and a calm coach for Grade 4–6 pianists." },
-      { property: "og:title", content: "KeyCoach — Your intermediate piano coach" },
+      { property: "og:title", content: "Grshwin — Your intermediate piano coach" },
       { property: "og:description", content: "Daily practice plans, sheet music and coaching for Grade 4–6 pianists." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -21,7 +21,7 @@ function Landing() {
     <div className="min-h-screen bg-background">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
         <span className="font-display text-2xl">
-          Key<span className="text-primary">Coach</span>
+          Grshwin
         </span>
         <Button asChild variant="ghost">
           <Link to="/auth">Sign in</Link>

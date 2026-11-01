@@ -12,7 +12,7 @@ import { capturePerformanceHit, performanceAccuracy, type PerformanceHit } from 
 import { pageHead } from "@/lib/head";
 
 export const Route = createFileRoute("/_authenticated/scoring")({
-  head: () => pageHead("Performance scoring — KeyCoach", "Measure note accuracy and timing with a piano exercise and optional MIDI input."),
+  head: () => pageHead("Performance scoring — Grshwin", "Measure note accuracy and timing with a piano exercise and optional MIDI input."),
   component: Scoring,
 });
 

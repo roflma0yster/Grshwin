@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { computeStreak, latestPlanQuery, piecesQuery, profileQuery, sessionsQuery, todayIndex } from "@/lib/data";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
-  head: () => pageHead("Home — KeyCoach", "Today's practice at a glance."),
+  head: () => pageHead("Home — Grshwin", "Today's practice at a glance."),
   component: Dashboard,
 });
 

@@ -11,7 +11,7 @@ import { LESSONS } from "@/lib/learning";
 import { pageHead } from "@/lib/head";
 
 export const Route = createFileRoute("/_authenticated/theory")({
-  head: () => pageHead("Theory — KeyCoach", "Study key signatures, intervals, chords and rhythm with short piano lessons."),
+  head: () => pageHead("Theory — Grshwin", "Study key signatures, intervals, chords and rhythm with short piano lessons."),
   component: Theory,
 });
 
