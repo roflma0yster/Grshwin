@@ -1,9 +1,19 @@
 import { describe, expect, it } from "vitest";
 import { validateScore } from "@/lib/score-validation";
-import { INTERVALS, CHORDS, performanceAccuracy } from "@/lib/learning";
+import { INTERVALS, CHORDS, capturePerformanceHit, performanceAccuracy } from "@/lib/learning";
 import { demoMusicXml, parseNotes, practiceNotes } from "@/lib/music";
 
 describe("Music learning", () => {
+  it("matches notes to their beat without shifting over a missed note", () => {
+    expect(capturePerformanceHit([60, 62, 64], [null, null, null], 64, 2040, 1000)).toEqual({ index: 2, hit: { correct: true, offset: 40 } });
+  });
+  it("does not count repeated strikes in an already occupied slot", () => {
+    expect(capturePerformanceHit([60, 62], [{ correct: true, offset: 0 }, null], 60, 40, 1000)).toBeNull();
+  });
+  it("rejects inputs outside the exercise timing window", () => {
+    expect(capturePerformanceHit([60], [null], 60, -600, 1000)).toBeNull();
+    expect(capturePerformanceHit([60], [null], 60, 600, 1000)).toBeNull();
+  });
   it("represents a perfect fifth as seven semitones", () => {
     expect(INTERVALS.find((i) => i.label === "Perfect 5th")?.semitones).toBe(7);
   });
