@@ -20,7 +20,7 @@ function Theory() {
   const [active, setActive] = useState(0);
   const [answer, setAnswer] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
-  const { data: progress = [], isLoading, error } = useQuery({ queryKey: ["theory-progress"], queryFn: async () => {
+  const { data: progress = [], isLoading, error, refetch } = useQuery({ queryKey: ["theory-progress"], queryFn: async () => {
     const { data, error } = await supabase.from("theory_progress").select("*");
     if (error) throw error;
     return data;
@@ -29,13 +29,12 @@ function Theory() {
   if (!lesson) return null;
   const completed = new Set(progress.filter((p) => p.completed).map((p) => p.topic));
   async function complete() {
-    if (!lesson || answer !== lesson.answer) return;
+    if (!lesson || answer !== lesson.answer || saving || error || completed.has(lesson.id)) return;
     setSaving(true);
     try {
       const { data: auth } = await supabase.auth.getUser();
       if (!auth.user) throw new Error("Please sign in again.");
-      const row = progress.find((p) => p.topic === lesson.id);
-      const result = row ? await supabase.from("theory_progress").update({ completed: true }).eq("id", row.id) : await supabase.from("theory_progress").insert({ user_id: auth.user.id, topic: lesson.id, completed: true });
+      const result = await supabase.from("theory_progress").upsert({ user_id: auth.user.id, topic: lesson.id, completed: true }, { onConflict: "user_id,topic" });
       if (result.error) throw result.error;
       await qc.invalidateQueries({ queryKey: ["theory-progress"] });
       toast.success("Lesson completed");
@@ -45,7 +44,8 @@ function Theory() {
   return <>
     <PageHeader title="Theory" subtitle="A little understanding. A more musical practice." />
     <LearningProgress value={completed.size / LESSONS.length * 100} label={`${completed.size} of ${LESSONS.length} lessons completed`} />
-    {error && <p role="alert" className="mb-4 text-destructive">Your saved progress could not be loaded.</p>}
+    {isLoading && <p role="status" className="mb-4 text-muted-foreground">Loading progress…</p>}
+    {error && <div className="mb-4 flex flex-wrap items-center gap-3"><p role="alert" className="text-destructive">Your saved progress could not be loaded.</p><Button variant="outline" onClick={() => refetch()}>Retry</Button></div>}
     <div className="grid gap-8 md:grid-cols-[220px_1fr]">
       <nav aria-label="Theory lessons" className="flex flex-col gap-2">{LESSONS.map((l, i) => <Button key={l.id} variant={i === active ? "secondary" : "ghost"} onClick={() => { setActive(i); setAnswer(null); }} className="h-auto justify-start gap-3 whitespace-normal py-3 text-left"><span className="text-primary">{completed.has(l.id) ? <Check className="h-4 w-4" /> : <BookOpen className="h-4 w-4" />}</span><span>{l.title}</span></Button>)}</nav>
       <article className="min-w-0">
@@ -57,7 +57,7 @@ function Theory() {
           <h3 className="font-semibold">{lesson.question}</h3>
           <div className="my-4 grid gap-2 sm:grid-cols-2">{lesson.choices.map((c, i) => <Button key={c} variant={answer === i ? "secondary" : "outline"} className="h-auto justify-start whitespace-normal py-3" onClick={() => setAnswer(i)}>{c}</Button>)}</div>
           {answer !== null && <p role="status" className="mb-4 text-sm text-muted-foreground">{answer === lesson.answer ? `Correct. ${lesson.explanation}` : "Not quite. Revisit the lesson and try another answer."}</p>}
-          <div className="flex flex-wrap gap-2"><Button onClick={complete} disabled={answer !== lesson.answer || saving || isLoading || completed.has(lesson.id)}><Check className="h-4 w-4" />{completed.has(lesson.id) ? "Completed" : "Complete lesson"}</Button>{active < LESSONS.length - 1 && <Button variant="ghost" onClick={() => { setActive(active + 1); setAnswer(null); }}>Next lesson<ArrowRight className="h-4 w-4" /></Button>}</div>
+          <div className="flex flex-wrap gap-2"><Button onClick={complete} disabled={answer !== lesson.answer || saving || isLoading || !!error || completed.has(lesson.id)}><Check className="h-4 w-4" />{completed.has(lesson.id) ? "Completed" : saving ? "Saving…" : "Complete lesson"}</Button>{active < LESSONS.length - 1 && <Button variant="ghost" disabled={saving} onClick={() => { setActive(active + 1); setAnswer(null); }}>Next lesson<ArrowRight className="h-4 w-4" /></Button>}</div>
         </section>
       </article>
     </div>
