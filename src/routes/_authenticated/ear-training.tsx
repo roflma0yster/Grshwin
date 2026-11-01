@@ -11,7 +11,7 @@ import { soundSequence } from "@/lib/audio";
 import { pageHead } from "@/lib/head";
 
 export const Route = createFileRoute("/_authenticated/ear-training")({
-  head: () => pageHead("Ear training — KeyCoach", "Practise recognising musical intervals, chords and rhythms by ear."),
+  head: () => pageHead("Ear training — Grshwin", "Practise recognising musical intervals, chords and rhythms by ear."),
   component: EarTraining,
 });
 

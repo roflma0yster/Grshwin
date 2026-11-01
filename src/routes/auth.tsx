@@ -11,10 +11,10 @@ import { Label } from "@/components/ui/label";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Sign in — KeyCoach" },
-      { name: "description", content: "Sign in or create your KeyCoach account." },
-      { property: "og:title", content: "Sign in — KeyCoach" },
-      { property: "og:description", content: "Sign in or create your KeyCoach account." },
+      { title: "Sign in — Grshwin" },
+      { name: "description", content: "Sign in or create your Grshwin account." },
+      { property: "og:title", content: "Sign in — Grshwin" },
+      { property: "og:description", content: "Sign in or create your Grshwin account." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -63,7 +63,7 @@ function AuthPage() {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm rounded-2xl border bg-card p-8 shadow-soft">
         <h1 className="font-display text-3xl">
-          Key<span className="text-primary">Coach</span>
+          Grshwin
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">{mode === "signin" ? "Welcome back." : "Create your account."}</p>
         {sent ? (

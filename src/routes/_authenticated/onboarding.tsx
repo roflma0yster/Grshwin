@@ -9,7 +9,7 @@ import { LEVELS } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
-  head: () => pageHead("Set up your practice — KeyCoach", "Tell KeyCoach about your playing."),
+  head: () => pageHead("Set up your practice — Grshwin", "Tell Grshwin about your playing."),
   component: Onboarding,
 });
 

@@ -13,7 +13,7 @@ import { demoMusicXml, parseNotes } from "@/lib/music";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/piece/$id")({
-  head: () => pageHead("Piece player — KeyCoach", "Practise a piece with tempo, looping and metronome."),
+  head: () => pageHead("Piece player — Grshwin", "Practise a piece with tempo, looping and metronome."),
   component: PiecePlayer,
 });
 

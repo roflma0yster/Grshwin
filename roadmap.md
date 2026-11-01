@@ -1,4 +1,4 @@
-# KeyCoach remaining features
+# Grshwin remaining features
 - [x] Uploaded-score hand selection, bar loops, metronome and private playback
 - [x] Make theory completion repeat-safe and add progress retry
 - [x] Keep ear-training answers safe when saving is retried

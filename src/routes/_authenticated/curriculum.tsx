@@ -16,7 +16,7 @@ import { latestPlanQuery, piecesQuery, profileQuery, sessionsQuery, todayIndex }
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/curriculum")({
-  head: () => pageHead("Weekly plan — KeyCoach", "Your personalised weekly practice plan."),
+  head: () => pageHead("Weekly plan — Grshwin", "Your personalised weekly practice plan."),
   component: Curriculum,
 });
 
