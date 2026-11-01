@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Play, RotateCcw, ArrowRight, Ear } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/AppShell";
@@ -25,6 +25,7 @@ function EarTraining() {
   const [playing, setPlaying] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
+  const attemptId = useRef<string | null>(null);
   const { data: history = [], isLoading, error, refetch } = useQuery({ queryKey: ["ear-progress"], queryFn: async () => {
     const { data, error } = await supabase.from("ear_training_progress").select("*");
     if (error) throw error; return data;
@@ -36,7 +37,7 @@ function EarTraining() {
   async function listen(fresh = false) {
     const index = fresh || target === null ? Math.floor(Math.random() * options.length) : target;
     const base = fresh || target === null ? 57 + Math.floor(Math.random() * 8) : root;
-    if (fresh || target === null) { setTarget(index); setRoot(base); setAnswer(null); setSaveFailed(false); }
+    if (fresh || target === null) { attemptId.current = crypto.randomUUID(); setTarget(index); setRoot(base); setAnswer(null); setSaveFailed(false); }
     setPlaying(true);
     try {
       const interval = INTERVALS[index]; const chord = CHORDS[index]; const rhythm = RHYTHMS[index];
@@ -51,12 +52,12 @@ function EarTraining() {
     setAnswer(index); await saveAnswer(index);
   }
   async function saveAnswer(index: number) {
-    if (target === null) return;
+    if (target === null || !attemptId.current || saving) return;
     setSaving(true); setSaveFailed(false);
     try {
       const { data } = await supabase.auth.getUser();
       if (!data.user) throw new Error("Sign in again");
-      const { error } = await supabase.from("ear_training_progress").insert({ user_id: data.user.id, exercise: mode, attempts: 1, correct: index === target ? 1 : 0 });
+      const { error } = await supabase.from("ear_training_progress").upsert({ id: attemptId.current, user_id: data.user.id, exercise: mode, attempts: 1, correct: index === target ? 1 : 0 }, { onConflict: "id", ignoreDuplicates: true });
       if (error) throw error;
       await qc.invalidateQueries({ queryKey: ["ear-progress"] });
     } catch { setSaveFailed(true); toast.error("Your answer wasn't saved. You can retry saving it."); }
@@ -64,13 +65,13 @@ function EarTraining() {
   }
   return <>
     <PageHeader title="Ear training" subtitle="Listen closely. Trust your ear." />
-    <div className="mb-8 flex flex-wrap gap-2">{(["Intervals", "Chords", "Rhythm"] as Mode[]).map((m) => <Button key={m} variant={mode === m ? "secondary" : "ghost"} disabled={playing || saving} onClick={() => { setMode(m); setTarget(null); setAnswer(null); }}>{m}</Button>)}</div>
+    <div className="mb-8 flex flex-wrap gap-2">{(["Intervals", "Chords", "Rhythm"] as Mode[]).map((m) => <Button key={m} variant={mode === m ? "secondary" : "ghost"} disabled={playing || saving || saveFailed} onClick={() => { setMode(m); setTarget(null); setAnswer(null); }}>{m}</Button>)}</div>
     <div className="flex items-center gap-3 border-b pb-6"><Ear className="h-6 w-6 text-primary" /><p className="text-sm text-muted-foreground">{isLoading ? "Loading results…" : error ? "Saved results unavailable" : attempts ? `${correct} correct / ${attempts} attempts · ${performanceAccuracy(correct, attempts)}%` : "No attempts yet"}</p>{error && <Button variant="ghost" onClick={() => refetch()}><RotateCcw className="h-4 w-4" />Retry</Button>}</div>
     <section className="mx-auto max-w-xl py-10 text-center">
       <h2 className="font-display text-3xl">{mode === "Intervals" ? "What interval do you hear?" : mode === "Chords" ? "What chord do you hear?" : "Which rhythm do you hear?"}</h2>
       <Button size="lg" className="my-8" onClick={() => listen()} disabled={playing || saving}>{target === null ? <Play className="h-5 w-5" /> : <RotateCcw className="h-5 w-5" />}{playing ? "Playing…" : target === null ? "Listen" : "Listen again"}</Button>
       <div className="grid gap-3 sm:grid-cols-2">{options.map((o, i) => <Button key={o.label} variant={answer === i ? "secondary" : "outline"} className="h-12 text-base" onClick={() => choose(i)} disabled={target === null || playing || answer !== null}>{o.label}</Button>)}</div>
-      {answer !== null && <div className="mt-6"><p role="status" className="font-semibold">{answer === target ? "Correct — well heard!" : `The answer was ${options[target ?? 0]?.label}.`}</p>{saveFailed && <div className="mt-3"><p role="alert" className="text-sm text-destructive">This result has not been saved.</p><Button variant="outline" className="mt-2" disabled={saving} onClick={() => saveAnswer(answer)}><RotateCcw className="h-4 w-4" />Retry saving</Button></div>}<Button variant="ghost" className="mt-4" disabled={playing || saving} onClick={() => listen(true)}>Next exercise<ArrowRight className="h-4 w-4" /></Button></div>}
+      {answer !== null && <div className="mt-6"><p role="status" className="font-semibold">{answer === target ? "Correct — well heard!" : `The answer was ${options[target ?? 0]?.label}.`}</p>{saveFailed && <div className="mt-3"><p role="alert" className="text-sm text-destructive">This result has not been saved.</p><Button variant="outline" className="mt-2" disabled={saving} onClick={() => saveAnswer(answer)}><RotateCcw className="h-4 w-4" />Retry saving</Button></div>}<Button variant="ghost" className="mt-4" disabled={playing || saving || saveFailed} onClick={() => listen(true)}>Next exercise<ArrowRight className="h-4 w-4" /></Button></div>}
     </section>
   </>;
 }

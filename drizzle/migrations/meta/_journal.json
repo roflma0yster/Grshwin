@@ -15,6 +15,13 @@
       "when": 1793068199973,
       "tag": "0001_private_score_uploads",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793553485134,
+      "tag": "0002_reliable_learning_results",
+      "breakpoints": true
     }
   ]
 }

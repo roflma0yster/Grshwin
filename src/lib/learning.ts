@@ -23,3 +23,12 @@ export const RHYTHMS = [
 export function performanceAccuracy(correct: number, total: number) {
   return total > 0 ? Math.round(100 * correct / total) : 0;
 }
+
+export type PerformanceHit = { correct: boolean; offset: number };
+
+/** Each beat has one note slot; skipped beats stay missed rather than shifting the melody. */
+export function capturePerformanceHit(melody: readonly number[], hits: readonly (PerformanceHit | null)[], note: number, elapsed: number, beat: number) {
+  const index = Math.round(elapsed / beat);
+  if (elapsed < -beat / 2 || index < 0 || index >= melody.length || hits[index]) return null;
+  return { index, hit: { correct: note === melody[index], offset: Math.round(elapsed - index * beat) } };
+}

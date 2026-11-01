@@ -1,0 +1,4 @@
+ALTER TABLE public.theory_progress ADD CONSTRAINT theory_progress_user_topic_key UNIQUE (user_id, topic);
+ALTER TABLE public.scores ADD COLUMN timing_ms integer, ADD COLUMN correct_notes integer, ADD COLUMN missed_notes integer, ADD COLUMN total_notes integer, ADD COLUMN exercise text;
+ALTER TABLE public.scores ADD CONSTRAINT scores_timing_nonnegative CHECK (timing_ms IS NULL OR timing_ms >= 0);
+ALTER TABLE public.scores ADD CONSTRAINT scores_note_counts_valid CHECK ((correct_notes IS NULL OR correct_notes >= 0) AND (missed_notes IS NULL OR missed_notes >= 0) AND (total_notes IS NULL OR total_notes > 0));
