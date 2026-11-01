@@ -1,7 +1,7 @@
 # KeyCoach remaining features
-- [ ] Complete uploaded-score practice controls and verify saved learning flows
-- [ ] Theory lessons and saved quiz completion
-- [ ] Ear-training exercises with audio and saved results
-- [ ] Private MusicXML uploads and full score playback
-- [ ] On-screen / MIDI performance scoring and saved results
-- [ ] Validate signed-in flows, tests, and page metadata
+- [x] Uploaded-score hand selection, bar loops, metronome and private playback
+- [ ] Make theory completion repeat-safe and add progress retry
+- [ ] Keep ear-training answers safe when saving is retried
+- [ ] Align performance scoring with timed note slots and repeat-safe saves
+- [ ] Validate signed-in learning flows, tests, and page metadata
+- [ ] Verify physical MIDI input (requires connected MIDI hardware)
