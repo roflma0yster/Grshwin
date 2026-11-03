@@ -33,5 +33,5 @@ describe("Audio recording comparison", () => {
     expect(() => validateAudioFile({ name: "score.pdf", size: 100 })).toThrow();
   });
   it("enforces the 20 MB file limit", () => { expect(() => validateAudioFile({ name: "piano.wav", size: 20 * 1024 * 1024 + 1 })).toThrow(); });
-  it("enforces the two-minute duration limit", () => { expect(() => validateAudioDuration(121)).toThrow(); expect(() => validateAudioDuration(120)).not.toThrow(); });
+  it("enforces the five-minute duration limit", () => { expect(() => validateAudioDuration(301)).toThrow(); expect(() => validateAudioDuration(300)).not.toThrow(); });
 });

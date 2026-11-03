@@ -102,7 +102,7 @@ export function AudioComparison() {
     } catch { setError("Deletion failed. Please retry."); } finally { setBusy(""); }
   }
   return <section className="mt-6 space-y-6">
-    <div><h2 className="font-display text-2xl">Audio comparison</h2><p className="mt-2 text-sm text-muted-foreground">WAV, MP3 or M4A · up to 20 MB and 2 minutes each · same musical passage</p></div>
+    <div><h2 className="font-display text-2xl">Audio comparison</h2><p className="mt-2 text-sm text-muted-foreground">WAV, MP3 or M4A · up to 20 MB and 5 minutes each · same musical passage</p></div>
     <div className="grid gap-6 md:grid-cols-2">{(["baseline", "performance"] as const).map((kind) => {
       const recording = kind === "baseline" ? baseline : performance;
       const update = kind === "baseline" ? setBaseline : setPerformance;
