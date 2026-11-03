@@ -11,7 +11,8 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "setup:basic-pitch": "node scripts/copy-basic-pitch-model.mjs"
   },
   "overrides": {
     "rolldown": "1.2.1"
@@ -52,6 +53,8 @@
     "@tanstack/react-router": "1.170.41",
     "@tanstack/react-start": "1.168.60",
     "@tanstack/router-plugin": "1.168.42",
+    "@spotify/basic-pitch": "^1.0.1",
+    "@tensorflow/tfjs": "^4.22.0",
     "ai": "^7.0.143",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

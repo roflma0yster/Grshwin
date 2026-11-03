@@ -202,9 +202,11 @@ export type Database = {
           correct_notes: number | null
           created_at: string
           exercise: string | null
+          extra_notes: number | null
           id: string
           missed_notes: number | null
           piece_id: string | null
+          scoring_method: string | null
           tempo: number | null
           timing_ms: number | null
           total_notes: number | null
@@ -215,9 +217,11 @@ export type Database = {
           correct_notes?: number | null
           created_at?: string
           exercise?: string | null
+          extra_notes?: number | null
           id?: string
           missed_notes?: number | null
           piece_id?: string | null
+          scoring_method?: string | null
           tempo?: number | null
           timing_ms?: number | null
           total_notes?: number | null
@@ -228,9 +232,11 @@ export type Database = {
           correct_notes?: number | null
           created_at?: string
           exercise?: string | null
+          extra_notes?: number | null
           id?: string
           missed_notes?: number | null
           piece_id?: string | null
+          scoring_method?: string | null
           tempo?: number | null
           timing_ms?: number | null
           total_notes?: number | null

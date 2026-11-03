@@ -19,6 +19,6 @@
 - MusicXML playback aligns all parts on shared bar boundaries, sustains ties, and clips notes to practice ranges — uploaded scores must preserve their musical timing.
 - Uploaded scores use authenticated server validation, private owner-scoped storage, and `user_pieces`; never place uploads into the shared catalog.
 - Learning exercises use curated browser-safe data and persist user-owned progress; audio is initiated by user gestures.
-- Performance scores measure the fixed on-screen/MIDI exercise, not microphone recognition or arbitrary repertoire; this keeps feedback based on captured notes.
+- Performance scoring methods are selectable (`src/lib/scoring-methods.ts`): Classic scores MIDI/on-screen input; Basic Pitch transcribes microphone audio. Every method scores the fixed exercise only, not arbitrary repertoire; this keeps feedback based on captured notes.
 - Performance inputs are matched to beat slots, leaving skipped slots missed; save timing and note counts with the exercise so history retains the measured result.
 - Learning writes use unique user/topic completion or stable attempt IDs for retries so repeated requests cannot double-count progress.
