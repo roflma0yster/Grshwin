@@ -26,8 +26,15 @@
     {
       "idx": 3,
       "version": "7",
+      "when": 1793674046007,
+      "tag": "0003_private_audio_comparisons",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
       "when": 1793700000000,
-      "tag": "0003_scoring_methods",
+      "tag": "0004_scoring_methods",
       "breakpoints": true
     }
   ]
