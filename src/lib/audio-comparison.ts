@@ -50,9 +50,10 @@ export function extractFeatures(samples: Float32Array, sampleRate: number, start
 function similarity(a: AudioFrame, b: AudioFrame) { return Math.max(0, Math.min(1, a.chroma.reduce((s, v, i) => s + v * (b.chroma[i] ?? 0), 0))); }
 export function compareFeatures(baseline: AudioFeatures, performance: AudioFeatures): ComparisonResult {
   if (!baseline.frames.length || !performance.frames.length) throw new Error("Both recordings need audible music.");
-  const dtw = new DynamicTimeWarping(baseline.frames, performance.frames, (a, b) => 1 - similarity(a, b));
-  const path = dtw.getPath();
   const baselineDuration = baseline.end - baseline.start, performanceDuration = performance.end - performance.start;
+  // A tiny normalized-time penalty resolves ambiguous sustained-note paths.
+  const dtw = new DynamicTimeWarping(baseline.frames, performance.frames, (a, b) => 1 - similarity(a, b) + 0.01 * Math.abs((a.time - baseline.start) / baselineDuration - (b.time - performance.start) / performanceDuration));
+  const path = dtw.getPath();
   const segments = path.flatMap(([i, j]) => {
     const a = baseline.frames[i], b = performance.frames[j];
     return a && b ? [{ baselineTime: a.time, performanceTime: b.time, similarity: Math.round(similarity(a, b) * 100) }] : [];
