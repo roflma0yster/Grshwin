@@ -22,3 +22,5 @@
 - Performance scores measure the fixed on-screen/MIDI exercise, not microphone recognition or arbitrary repertoire; this keeps feedback based on captured notes.
 - Performance inputs are matched to beat slots, leaving skipped slots missed; save timing and note counts with the exercise so history retains the measured result.
 - Learning writes use unique user/topic completion or stable attempt IDs for retries so repeated requests cannot double-count progress.
+- Audio-file comparisons use normalized FFT pitch-class features and dynamic time warping in browser handlers; label acoustic similarity separately from exercise note accuracy because recordings are not transcribed.
+- Comparison recordings and results are private owner-scoped data; save stable attempt IDs and owner-prefixed storage paths so retries cannot create duplicate history.
