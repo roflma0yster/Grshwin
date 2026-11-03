@@ -2,7 +2,7 @@ import FFT from "fft.js";
 import DynamicTimeWarping from "dynamic-time-warping";
 
 export const AUDIO_MAX_BYTES = 20 * 1024 * 1024;
-export const AUDIO_MAX_SECONDS = 120;
+export const AUDIO_MAX_SECONDS = 300;
 export type AudioFrame = { time: number; chroma: number[]; rms: number };
 export type AudioFeatures = { frames: AudioFrame[]; start: number; end: number; tonalFraction: number };
 export type ComparisonResult = { version: 1; similarity: number; tempoRatio: number; timingDeviationMs: number; baselineActiveSeconds: number; performanceActiveSeconds: number; warnings: string[]; segments: { baselineTime: number; performanceTime: number; similarity: number }[] };
@@ -12,7 +12,7 @@ export function validateAudioFile(file: { name: string; size: number }) {
   if (!file.size || file.size > AUDIO_MAX_BYTES) throw new Error("Each recording must be between 1 byte and 20 MB.");
 }
 export function validateAudioDuration(duration: number) {
-  if (!Number.isFinite(duration) || duration < 0.5 || duration > AUDIO_MAX_SECONDS) throw new Error("Choose a recording between 0.5 and 120 seconds long.");
+  if (!Number.isFinite(duration) || duration < 0.5 || duration > AUDIO_MAX_SECONDS) throw new Error("Choose a recording between 0.5 seconds and 5 minutes long.");
 }
 
 /** Normalized pitch-class energy: an acoustic resemblance measure, not transcription. */
