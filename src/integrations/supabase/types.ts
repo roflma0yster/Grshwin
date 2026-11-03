@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      audio_comparisons: {
+        Row: {
+          baseline_end: number
+          baseline_name: string
+          baseline_path: string
+          baseline_start: number
+          created_at: string
+          id: string
+          performance_end: number
+          performance_name: string
+          performance_path: string
+          performance_start: number
+          result: Json
+          user_id: string
+        }
+        Insert: {
+          baseline_end: number
+          baseline_name: string
+          baseline_path: string
+          baseline_start: number
+          created_at?: string
+          id?: string
+          performance_end: number
+          performance_name: string
+          performance_path: string
+          performance_start: number
+          result: Json
+          user_id: string
+        }
+        Update: {
+          baseline_end?: number
+          baseline_name?: string
+          baseline_path?: string
+          baseline_start?: number
+          created_at?: string
+          id?: string
+          performance_end?: number
+          performance_name?: string
+          performance_path?: string
+          performance_start?: number
+          result?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
       ear_training_progress: {
         Row: {
           attempts: number
