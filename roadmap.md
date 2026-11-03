@@ -5,6 +5,6 @@
 - [x] Align performance scoring with timed note slots and repeat-safe saves
 - [x] Validate signed-in learning flows, tests, and page metadata
 - [ ] Verify physical MIDI input (requires connected MIDI hardware)
-- [ ] Add audio-file comparison, playback, trimming and measured feedback
-- [ ] Save and reopen private audio comparisons
-- [ ] Test audio analysis and signed-in upload → compare → save → reopen
+- [x] Add audio-file comparison, playback, trimming and measured feedback
+- [x] Save and reopen private audio comparisons
+- [x] Test audio analysis and signed-in upload → compare → save → reopen
