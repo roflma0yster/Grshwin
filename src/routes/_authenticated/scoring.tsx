@@ -10,9 +10,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { soundSequence } from "@/lib/audio";
 import { capturePerformanceHit, performanceAccuracy, type PerformanceHit } from "@/lib/learning";
 import { pageHead } from "@/lib/head";
+import { AudioComparison } from "@/components/AudioComparison";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const Route = createFileRoute("/_authenticated/scoring")({
-  head: () => pageHead("Performance scoring — Grshwin", "Measure note accuracy and timing with a piano exercise and optional MIDI input."),
+  head: () => pageHead("Performance scoring — Grshwin", "Compare private audio recordings or measure note accuracy and timing with piano and MIDI exercises."),
   component: Scoring,
 });
 
@@ -96,7 +98,9 @@ function Scoring() {
     finally { setSaving(false); }
   }
   return <>
-    <PageHeader title="Performance scoring" subtitle="C major · eight-note accuracy & timing exercise"><Button variant="outline" onClick={connect}><Cable className="h-4 w-4" />Connect MIDI</Button></PageHeader>
+    <PageHeader title="Performance scoring" subtitle="Recordings & piano exercises" />
+    <Tabs defaultValue="audio"><TabsList><TabsTrigger value="audio">Audio comparison</TabsTrigger><TabsTrigger value="exercise">Piano & MIDI</TabsTrigger></TabsList><TabsContent value="audio"><AudioComparison /></TabsContent><TabsContent value="exercise">
+    <div className="my-4 flex justify-end"><Button variant="outline" onClick={connect}><Cable className="h-4 w-4" />Connect MIDI</Button></div>
     {midiName && <p role="status" className="mb-4 text-sm text-muted-foreground">{midiName}</p>}
     <div className="flex flex-wrap items-center gap-6 border-y py-4"><Button disabled={audioBusy || saving} onClick={running ? finish : start}>{running ? <Square className="h-4 w-4" /> : <Play className="h-4 w-4" />}{running ? "Stop" : "Start exercise"}</Button><div className="min-w-40 max-w-xs flex-1 space-y-2"><p className="text-sm">Tempo · ♩ = {tempo}</p><Slider aria-label="Exercise tempo" min={40} max={120} step={5} value={[tempo]} disabled={running || saving || (finished && !saved)} onValueChange={([v]) => setTempo(v ?? 60)} /></div></div>
     <div className="mt-8 grid grid-cols-8 gap-1" aria-label="Exercise notes">{MELODY.map((n, i) => <div key={i} className={`flex h-20 flex-col items-center justify-center gap-2 rounded-md border ${hits[i] ? hits[i]?.correct ? "bg-accent text-accent-foreground" : "bg-destructive/10 text-destructive" : running && currentNote === i ? "border-primary bg-secondary" : finished || (currentNote !== null && i < currentNote) ? "bg-muted text-muted-foreground" : "bg-card"}`}><span className="text-xs text-muted-foreground">{i + 1}</span><span className="font-display text-xl">{KEYS.find((k) => k.midi === n)?.name.replace("4", "")}</span></div>)}</div>
@@ -105,5 +109,6 @@ function Scoring() {
     {!running && finished && <section className="mt-8 flex flex-wrap items-center justify-between gap-6 border-y py-6"><div><p className="font-display text-3xl">{accuracy}%</p><p className="text-sm text-muted-foreground">{correct} of 8 notes correct · {8 - played.length} missed</p></div><div><p className="font-display text-3xl">{timing === null ? "—" : `${timing} ms`}</p><p className="text-sm text-muted-foreground">Average timing deviation</p></div><Button onClick={save} disabled={saving || saved}><Save className="h-4 w-4" />{saved ? "Saved" : saving ? "Saving…" : "Save result"}</Button></section>}
     <h2 className="mt-8 font-display text-2xl">Recent performances</h2>
     {isLoading ? <p role="status" className="mt-4 text-muted-foreground">Loading performances…</p> : error ? <div className="mt-4 flex flex-wrap items-center gap-3"><p role="alert" className="text-destructive">Saved performances could not be loaded.</p><Button variant="outline" onClick={() => refetch()}><RotateCcw className="h-4 w-4" />Retry</Button></div> : history.length ? <ul className="mt-4 divide-y">{history.map((h) => <li key={h.id} className="flex flex-wrap justify-between gap-3 py-3 text-sm"><span>{new Date(h.created_at).toLocaleDateString()} · {h.tempo} BPM{h.exercise && " · C major exercise"}</span><span className="font-semibold">{h.accuracy}% note accuracy{h.timing_ms !== null && ` · ${h.timing_ms} ms`}{h.missed_notes !== null && ` · ${h.missed_notes} missed`}</span></li>)}</ul> : <p className="mt-4 text-muted-foreground">No saved performances yet.</p>}
+    </TabsContent></Tabs>
   </>;
 }
