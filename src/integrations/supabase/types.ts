@@ -41,12 +41,34 @@ export type Database = {
         }
         Relationships: []
       }
+      piece_skills: {
+        Row: {
+          piece_id: string
+          skill_id: string
+          emphasis: number
+          note: string
+        }
+        Insert: {
+          piece_id: string
+          skill_id: string
+          emphasis: number
+          note: string
+        }
+        Update: {
+          piece_id?: string
+          skill_id?: string
+          emphasis?: number
+          note?: string
+        }
+        Relationships: []
+      }
       pieces: {
         Row: {
           composer: string
           created_at: string
           default_tempo: number
           difficulty: string
+          difficulty_rating: number
           genre: string
           id: string
           key_signature: string
@@ -61,6 +83,7 @@ export type Database = {
           created_at?: string
           default_tempo?: number
           difficulty: string
+          difficulty_rating?: number
           genre: string
           id?: string
           key_signature: string
@@ -75,6 +98,7 @@ export type Database = {
           created_at?: string
           default_tempo?: number
           difficulty?: string
+          difficulty_rating?: number
           genre?: string
           id?: string
           key_signature?: string
@@ -83,6 +107,39 @@ export type Database = {
           musicxml_url?: string | null
           source_url?: string | null
           title?: string
+        }
+        Relationships: []
+      }
+      player_ratings: {
+        Row: {
+          baseline: number
+          deviation: number
+          moved_on: string
+          moved_today: number
+          rating: number
+          scored_ceiling: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          baseline: number
+          deviation: number
+          moved_on?: string
+          moved_today?: number
+          rating: number
+          scored_ceiling?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          baseline?: number
+          deviation?: number
+          moved_on?: string
+          moved_today?: number
+          rating?: number
+          scored_ceiling?: number | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -196,6 +253,54 @@ export type Database = {
         }
         Relationships: []
       }
+      rating_events: {
+        Row: {
+          created_at: string
+          deviation_after: number
+          evidence_key: string
+          exercise_id: string | null
+          id: string
+          kind: string
+          label: string | null
+          outcome: number
+          piece_id: string | null
+          rating_after: number
+          rating_before: number
+          target_difficulty: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          deviation_after: number
+          evidence_key: string
+          exercise_id?: string | null
+          id?: string
+          kind: string
+          label?: string | null
+          outcome: number
+          piece_id?: string | null
+          rating_after: number
+          rating_before: number
+          target_difficulty: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          deviation_after?: number
+          evidence_key?: string
+          exercise_id?: string | null
+          id?: string
+          kind?: string
+          label?: string | null
+          outcome?: number
+          piece_id?: string | null
+          rating_after?: number
+          rating_before?: number
+          target_difficulty?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       scores: {
         Row: {
           accuracy: number | null
@@ -252,6 +357,27 @@ export type Database = {
           },
         ]
       }
+      skills: {
+        Row: {
+          category: string
+          description: string
+          id: string
+          name: string
+        }
+        Insert: {
+          category: string
+          description: string
+          id: string
+          name: string
+        }
+        Update: {
+          category?: string
+          description?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       theory_progress: {
         Row: {
           completed: boolean
@@ -276,11 +402,37 @@ export type Database = {
         }
         Relationships: []
       }
+      user_piece_skills: {
+        Row: {
+          emphasis: number
+          note: string
+          skill_id: string
+          user_id: string
+          user_piece_id: string
+        }
+        Insert: {
+          emphasis: number
+          note: string
+          skill_id: string
+          user_id: string
+          user_piece_id: string
+        }
+        Update: {
+          emphasis?: number
+          note?: string
+          skill_id?: string
+          user_id?: string
+          user_piece_id?: string
+        }
+        Relationships: []
+      }
       user_pieces: {
         Row: {
           composer: string | null
           created_at: string
+          difficulty_rating: number | null
           file_path: string | null
+          genre: string | null
           id: string
           musicxml_content: string | null
           title: string
@@ -289,7 +441,9 @@ export type Database = {
         Insert: {
           composer?: string | null
           created_at?: string
+          difficulty_rating?: number | null
           file_path?: string | null
+          genre?: string | null
           id?: string
           musicxml_content?: string | null
           title: string
@@ -298,10 +452,63 @@ export type Database = {
         Update: {
           composer?: string | null
           created_at?: string
+          difficulty_rating?: number | null
           file_path?: string | null
+          genre?: string | null
           id?: string
           musicxml_content?: string | null
           title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_skill_events: {
+        Row: {
+          created_at: string
+          evidence_key: string
+          level_after: number
+          level_before: number
+          skill_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          evidence_key: string
+          level_after: number
+          level_before: number
+          skill_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          evidence_key?: string
+          level_after?: number
+          level_before?: number
+          skill_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_skills: {
+        Row: {
+          level: number
+          skill_id: string
+          source: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          level: number
+          skill_id: string
+          source: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          level?: number
+          skill_id?: string
+          source?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []

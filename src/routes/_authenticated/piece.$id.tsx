@@ -112,6 +112,7 @@ function PiecePlayer() {
   return (
     <>
       <Link to="/library" className="text-sm text-muted-foreground hover:text-foreground">← Library</Link>
+      <Link to="/library" search={{ like: id }} className="ml-4 text-sm text-muted-foreground hover:text-foreground">More like this</Link>
       <h1 className="mt-2 font-display text-3xl md:text-4xl">{piece.title}</h1>
       <p className="text-muted-foreground">{piece.composer} · {piece.key_signature} · {piece.difficulty}</p>
       {!piece.musicxml_url && (

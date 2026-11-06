@@ -1,7 +1,7 @@
 import { pageHead } from "@/lib/head";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Flame, Clock, Library, BookOpen, Ear, Gauge } from "lucide-react";
+import { Flame, Clock, Library, BookOpen, Ear, Gauge, TrendingUp } from "lucide-react";
 import { PageHeader } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { computeStreak, latestPlanQuery, piecesQuery, profileQuery, sessionsQuery, todayIndex } from "@/lib/data";
@@ -50,12 +50,13 @@ function Dashboard() {
         )}
       </section>
 
-      <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4">
+      <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-5">
         {([
           ["/library", "Library", Library],
           ["/theory", "Theory", BookOpen],
           ["/ear-training", "Ear training", Ear],
           ["/scoring", "Scoring", Gauge],
+          ["/level", "Your level", TrendingUp],
         ] as const).map(([to, label, Icon]) => (
           <Link key={to} to={to} className="flex flex-col gap-2 rounded-xl border bg-card p-4 transition-colors hover:border-primary">
             <Icon className="h-5 w-5 text-primary" />

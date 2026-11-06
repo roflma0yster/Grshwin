@@ -3,24 +3,29 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { PageHeader } from "@/components/AppShell";
+import { Recommendations } from "@/components/Recommendations";
 import { Badge } from "@/components/ui/badge";
 import { piecesQuery } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/library")({
   head: () => pageHead("Library — Grshwin", "Public-domain repertoire for intermediate pianists."),
+  validateSearch: (search: Record<string, unknown>): { like?: string } => ({ like: typeof search.like === "string" && search.like ? search.like : undefined }),
   component: LibraryPage,
 });
 
 const GENRES = ["All", "Classical", "Jazz", "Blues", "Pop"];
 
 function LibraryPage() {
+  const { like } = Route.useSearch();
   const { data: pieces = [] } = useQuery(piecesQuery);
   const [genre, setGenre] = useState("All");
   const list = pieces.filter((p) => genre === "All" || p.genre === genre);
   return (
     <>
       <PageHeader title="Library" subtitle="Public-domain pieces chosen for Grades 4–6." />
+      <Recommendations key={like ?? "none"} seedPieceId={like ?? null} title={like ? `More like ${pieces.find((p) => p.id === like)?.title ?? "this piece"}` : "Recommended for you"} />
+      <h2 className="mb-4 font-display text-2xl">All pieces</h2>
       <div className="mb-6 flex flex-wrap gap-2">
         {GENRES.map((g) => (
           <button key={g} onClick={() => setGenre(g)} className={cn("rounded-full border px-4 py-1.5 text-sm", genre === g && "border-primary bg-accent text-accent-foreground")}>
