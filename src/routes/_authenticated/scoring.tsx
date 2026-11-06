@@ -15,9 +15,11 @@ import { MicError, startMicRecording, type MicRecording } from "@/lib/mic-record
 import { COUNT_IN_BEATS, scorePerformance } from "@/lib/performance-scoring";
 import { DEFAULT_SCORING_METHOD, SCORING_METHODS, SCORING_METHOD_STORAGE_KEY, isScoringMethodId, scoringMethodLabel, type ScoringMethodId } from "@/lib/scoring-methods";
 import { pageHead } from "@/lib/head";
+import { AudioComparison } from "@/components/AudioComparison";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const Route = createFileRoute("/_authenticated/scoring")({
-  head: () => pageHead("Performance scoring — Grshwin", "Measure note accuracy and timing with a piano exercise, using MIDI input or your microphone."),
+  head: () => pageHead("Performance scoring — Grshwin", "Compare private audio recordings or measure note accuracy and timing with piano exercises, using MIDI input or your microphone."),
   component: Scoring,
 });
 
@@ -168,7 +170,9 @@ function Scoring() {
     finally { setSaving(false); }
   }
   return <>
-    <PageHeader title="Performance scoring" subtitle="C major · eight-note accuracy & timing exercise">{!microphone && <Button variant="outline" onClick={connect}><Cable className="h-4 w-4" />Connect MIDI</Button>}</PageHeader>
+    <PageHeader title="Performance scoring" subtitle="Recordings & piano exercises" />
+    <Tabs defaultValue="audio"><TabsList><TabsTrigger value="audio">Audio comparison</TabsTrigger><TabsTrigger value="exercise">Piano & MIDI</TabsTrigger></TabsList><TabsContent value="audio"><AudioComparison /></TabsContent><TabsContent value="exercise">
+    {!microphone && <div className="my-4 flex justify-end"><Button variant="outline" onClick={connect}><Cable className="h-4 w-4" />Connect MIDI</Button></div>}
     <RadioGroup aria-label="Scoring method" value={method} onValueChange={chooseMethod} disabled={locked} className="mb-6 grid gap-3 sm:grid-cols-2">
       {SCORING_METHODS.map((m) => <Label key={m.id} htmlFor={`method-${m.id}`} className={`flex items-start gap-3 rounded-md border p-4 font-normal ${method === m.id ? "border-primary bg-secondary" : ""} ${locked ? "opacity-70" : "cursor-pointer"}`}>
         <RadioGroupItem id={`method-${m.id}`} value={m.id} disabled={locked} className="mt-1" />
@@ -188,5 +192,6 @@ function Scoring() {
     </section>}
     <h2 className="mt-8 font-display text-2xl">Recent performances</h2>
     {isLoading ? <p role="status" className="mt-4 text-muted-foreground">Loading performances…</p> : error ? <div className="mt-4 flex flex-wrap items-center gap-3"><p role="alert" className="text-destructive">Saved performances could not be loaded.</p><Button variant="outline" onClick={() => refetch()}><RotateCcw className="h-4 w-4" />Retry</Button></div> : history.length ? <ul className="mt-4 divide-y">{history.map((h) => <li key={h.id} className="flex flex-wrap justify-between gap-3 py-3 text-sm"><span>{new Date(h.created_at).toLocaleDateString()} · {h.tempo} BPM{h.exercise && " · C major exercise"} · {scoringMethodLabel(h.scoring_method)}</span><span className="font-semibold">{h.accuracy}% note accuracy{h.timing_ms !== null && ` · ${h.timing_ms} ms`}{h.missed_notes !== null && ` · ${h.missed_notes} missed`}{h.extra_notes ? ` · ${h.extra_notes} extra` : ""}</span></li>)}</ul> : <p className="mt-4 text-muted-foreground">No saved performances yet.</p>}
+    </TabsContent></Tabs>
   </>;
 }
