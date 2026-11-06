@@ -151,7 +151,7 @@ function SessionLog({ planId, dayIndex, checklist, defaultMinutes, session }: {
       <Textarea className="mt-4" placeholder="What was hard today?" value={note} onChange={(e) => setNote(e.target.value)} />
       <div className="mt-4 flex items-center gap-3">
         <Input type="number" min={0} className="w-24" value={minutes} onChange={(e) => setMinutes(+e.target.value)} />
-        <span className="text-sm text-muted-foreground">minutes practised</span>
+        <span className="text-sm text-muted-foreground">minutes practiced</span>
         <Button className="ml-auto" onClick={save} disabled={saving}>Save session</Button>
       </div>
     </Card>

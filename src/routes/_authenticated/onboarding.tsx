@@ -82,7 +82,7 @@ function Onboarding() {
             </Button>
           ) : (
             <Button disabled={!answers[s.key] || saving} onClick={finish}>
-              Start practising
+              Start practicing
             </Button>
           )}
         </div>

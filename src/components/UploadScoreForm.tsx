@@ -41,7 +41,7 @@ export function UploadScoreForm({ onDone, onBusyChange, className }: { onDone?: 
       }
       await qc.invalidateQueries({ queryKey: ["user-pieces"] });
       setFile(null); setTitle(""); setComposer("");
-      toast.success("Your score is ready to practise");
+      toast.success("Your score is ready to practice");
       onDone?.();
     } catch (e) { setError(e instanceof Error ? e.message : "Upload failed. Please try again."); }
     finally { setBusy(false); }
