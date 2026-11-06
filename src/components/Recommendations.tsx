@@ -44,7 +44,7 @@ export function Recommendations({ seedPieceId = null, title = "Recommended for y
                   {have.length > 0 && <p className="mt-3 text-xs text-muted-foreground">Skills you already have: {have.map((s) => s.name).join(", ")}</p>}
                 </details>
                 <div className="mt-4 flex flex-wrap gap-2">
-                  <Button asChild size="sm">{piece.ownerId ? <Link to="/my-piece/$id" params={{ id: piece.id }}>Practise this</Link> : <Link to="/piece/$id" params={{ id: piece.id }}>Practise this</Link>}</Button>
+                  <Button asChild size="sm">{piece.ownerId ? <Link to="/my-piece/$id" params={{ id: piece.id }}>Practice this</Link> : <Link to="/piece/$id" params={{ id: piece.id }}>Practice this</Link>}</Button>
                   {!piece.ownerId && <Button asChild size="sm" variant="outline"><Link to="/library" search={{ like: piece.id }}>More like this</Link></Button>}
                 </div>
               </article>
