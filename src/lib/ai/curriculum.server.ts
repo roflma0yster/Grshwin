@@ -40,6 +40,8 @@ const schema = {
 export type CurriculumInput = {
   profile: { genre: string | null; proficiency: string | null; goal: string | null; daily_minutes: number | null };
   pieces: { id: string; title: string; composer: string; genre: string; difficulty: string; key_signature: string }[];
+  /** Optional: measured level and skills to build next. Absent for players without a rating. */
+  levelContext?: string | null;
 };
 
 export async function generateWeeklyPlan(apiKey: string, input: CurriculumInput): Promise<WeeklyPlan> {
@@ -74,7 +76,7 @@ ${library}`;
     messages: [
       {
         role: "user",
-        content: `Student profile — genre: ${input.profile.genre}; level: ${input.profile.proficiency}; goal: ${input.profile.goal}; daily practice: ${input.profile.daily_minutes} minutes.`,
+        content: `Student profile — genre: ${input.profile.genre}; level: ${input.profile.proficiency}; goal: ${input.profile.goal}; daily practice: ${input.profile.daily_minutes} minutes.${input.levelContext ? ` ${input.levelContext}` : ""}`,
       },
     ],
     output: Output.object({ schema: jsonSchema<WeeklyPlan>(schema as never) }),

@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { generateCurriculum } from "@/lib/curriculum.functions";
+import { recordSessionProgress } from "@/lib/rating.functions";
 import { latestPlanQuery, piecesQuery, profileQuery, sessionsQuery, todayIndex } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
@@ -116,6 +117,7 @@ function SessionLog({ planId, dayIndex, checklist, defaultMinutes, session }: {
   session: { completed_items: unknown; minutes: number; hard_note: string | null } | undefined;
 }) {
   const qc = useQueryClient();
+  const progress = useServerFn(recordSessionProgress);
   const [done, setDone] = useState<string[]>((session?.completed_items as string[]) ?? []);
   const [minutes, setMinutes] = useState(session?.minutes || defaultMinutes);
   const [note, setNote] = useState(session?.hard_note ?? "");
@@ -132,6 +134,8 @@ function SessionLog({ planId, dayIndex, checklist, defaultMinutes, session }: {
     if (error) { toast.error(error.message); return; }
     toast.success("Session saved");
     qc.invalidateQueries({ queryKey: ["sessions"] });
+    // Skills grow from practice; this is best-effort and never blocks saving the session.
+    void progress({ data: { planId, dayIndex } }).then(() => { void qc.invalidateQueries({ queryKey: ["level"] }); void qc.invalidateQueries({ queryKey: ["recommendations"] }); }).catch(() => {});
   }
 
   return (
@@ -147,7 +151,7 @@ function SessionLog({ planId, dayIndex, checklist, defaultMinutes, session }: {
       <Textarea className="mt-4" placeholder="What was hard today?" value={note} onChange={(e) => setNote(e.target.value)} />
       <div className="mt-4 flex items-center gap-3">
         <Input type="number" min={0} className="w-24" value={minutes} onChange={(e) => setMinutes(+e.target.value)} />
-        <span className="text-sm text-muted-foreground">minutes practised</span>
+        <span className="text-sm text-muted-foreground">minutes practiced</span>
         <Button className="ml-auto" onClick={save} disabled={saving}>Save session</Button>
       </div>
     </Card>

@@ -28,4 +28,8 @@
 - Score playback has one engine, `src/hooks/use-playback.ts`, shared by the catalog piece player and the uploaded-score player; do not copy it into a screen. Tone is loaded inside the Play click and every node it creates is disposed on stop, unmount and score change.
 - Playback instruments come from the registry in `src/lib/instruments.ts` (Tone.js built-in synths, nothing downloaded). Add a voice there, not in a screen; a changed choice applies on the next Play and is remembered on the device.
 - Uploading a score starts from the Library page (`UploadScoreForm` in a dialog). `/upload` only redirects to `/library`; uploads stay private and owner-scoped.
-
+- Level ratings are computed and stored only by server functions (`src/lib/rating.functions.ts`, `src/lib/level.server.ts`) using the service role; the browser sends evidence, never a rating. `player_ratings`, `rating_events`, `user_skills` and `user_skill_events` are read-only for signed-in users.
+- Every piece of rating or skill evidence has a stable key (`rating_events` and `user_skill_events` are unique per user and key) so retries cannot double-count; insert the event first and undo it if the dependent write fails.
+- Songs a player says they can play are unverified claims: they carry low weight, cannot lift the rating far above the onboarding or scored level, and never enter the shared `pieces` catalog. Uploads and their skill tags stay owner-scoped.
+- Recommendations are ranked deterministically in `src/lib/recommend.ts`. Any AI step may only reword that result; it must not add, remove or reorder pieces, and every `pieceId` is checked against the ranked list.
+- Skill tags come only from the `skills` taxonomy table; never create skills from model output or user text. Tags are written by migration or reviewed scripts, not at runtime.

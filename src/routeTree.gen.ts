@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedCurriculumRouteImport } from './routes/_authenticated/curriculum'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedEarTrainingRouteImport } from './routes/_authenticated/ear-training'
+import { Route as AuthenticatedLevelRouteImport } from './routes/_authenticated/level'
 import { Route as AuthenticatedLibraryRouteImport } from './routes/_authenticated/library'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedScoringRouteImport } from './routes/_authenticated/scoring'
@@ -53,6 +54,11 @@ const AuthenticatedEarTrainingRoute =
     path: '/ear-training',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedLevelRoute = AuthenticatedLevelRouteImport.update({
+  id: '/level',
+  path: '/level',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedLibraryRoute = AuthenticatedLibraryRouteImport.update({
   id: '/library',
   path: '/library',
@@ -95,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/curriculum': typeof AuthenticatedCurriculumRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/ear-training': typeof AuthenticatedEarTrainingRoute
+  '/level': typeof AuthenticatedLevelRoute
   '/library': typeof AuthenticatedLibraryRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/scoring': typeof AuthenticatedScoringRoute
@@ -109,6 +116,7 @@ export interface FileRoutesByTo {
   '/curriculum': typeof AuthenticatedCurriculumRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/ear-training': typeof AuthenticatedEarTrainingRoute
+  '/level': typeof AuthenticatedLevelRoute
   '/library': typeof AuthenticatedLibraryRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/scoring': typeof AuthenticatedScoringRoute
@@ -125,6 +133,7 @@ export interface FileRoutesById {
   '/_authenticated/curriculum': typeof AuthenticatedCurriculumRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/ear-training': typeof AuthenticatedEarTrainingRoute
+  '/_authenticated/level': typeof AuthenticatedLevelRoute
   '/_authenticated/library': typeof AuthenticatedLibraryRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/scoring': typeof AuthenticatedScoringRoute
@@ -141,6 +150,7 @@ export interface FileRouteTypes {
     | '/curriculum'
     | '/dashboard'
     | '/ear-training'
+    | '/level'
     | '/library'
     | '/onboarding'
     | '/scoring'
@@ -155,6 +165,7 @@ export interface FileRouteTypes {
     | '/curriculum'
     | '/dashboard'
     | '/ear-training'
+    | '/level'
     | '/library'
     | '/onboarding'
     | '/scoring'
@@ -170,6 +181,7 @@ export interface FileRouteTypes {
     | '/_authenticated/curriculum'
     | '/_authenticated/dashboard'
     | '/_authenticated/ear-training'
+    | '/_authenticated/level'
     | '/_authenticated/library'
     | '/_authenticated/onboarding'
     | '/_authenticated/scoring'
@@ -229,6 +241,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEarTrainingRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/level': {
+      id: '/_authenticated/level'
+      path: '/level'
+      fullPath: '/level'
+      preLoaderRoute: typeof AuthenticatedLevelRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/library': {
       id: '/_authenticated/library'
       path: '/library'
@@ -285,6 +304,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCurriculumRoute: typeof AuthenticatedCurriculumRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedEarTrainingRoute: typeof AuthenticatedEarTrainingRoute
+  AuthenticatedLevelRoute: typeof AuthenticatedLevelRoute
   AuthenticatedLibraryRoute: typeof AuthenticatedLibraryRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedScoringRoute: typeof AuthenticatedScoringRoute
@@ -298,6 +318,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCurriculumRoute: AuthenticatedCurriculumRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedEarTrainingRoute: AuthenticatedEarTrainingRoute,
+  AuthenticatedLevelRoute: AuthenticatedLevelRoute,
   AuthenticatedLibraryRoute: AuthenticatedLibraryRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedScoringRoute: AuthenticatedScoringRoute,

@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Upload } from "lucide-react";
 import { PageHeader } from "@/components/AppShell";
+import { Recommendations } from "@/components/Recommendations";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -14,12 +15,14 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/library")({
   head: () => pageHead("Library — Grshwin", "Public-domain repertoire for intermediate pianists."),
+  validateSearch: (search: Record<string, unknown>): { like?: string } => ({ like: typeof search.like === "string" && search.like ? search.like : undefined }),
   component: LibraryPage,
 });
 
 const GENRES = ["All", "Classical", "Jazz", "Blues", "Pop"];
 
 function LibraryPage() {
+  const { like } = Route.useSearch();
   const { data: pieces = [] } = useQuery(piecesQuery);
   const [genre, setGenre] = useState("All");
   const [uploadOpen, setUploadOpen] = useState(false);
@@ -46,6 +49,7 @@ function LibraryPage() {
           </DialogContent>
         </Dialog>
       </PageHeader>
+      <Recommendations key={like ?? "none"} seedPieceId={like ?? null} title={like ? `More like ${pieces.find((p) => p.id === like)?.title ?? "this piece"}` : "Recommended for you"} />
       <YourScores />
       <h2 className="mb-4 font-display text-2xl">All pieces</h2>
       <div className="mb-6 flex flex-wrap gap-2">

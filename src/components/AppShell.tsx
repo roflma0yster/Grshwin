@@ -1,7 +1,7 @@
 import { Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, type ReactNode } from "react";
-import { Home, Library, CalendarDays, BookOpen, Ear, Gauge, LogOut } from "lucide-react";
+import { Home, Library, CalendarDays, BookOpen, Ear, Gauge, TrendingUp, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { profileQuery } from "@/lib/data";
 import { cn } from "@/lib/utils";
@@ -13,6 +13,7 @@ export const NAV = [
   { to: "/theory", label: "Theory", icon: BookOpen },
   { to: "/ear-training", label: "Ear", icon: Ear },
   { to: "/scoring", label: "Scoring", icon: Gauge },
+  { to: "/level", label: "Level", icon: TrendingUp },
 ] as const;
 
 export function AppShell() {

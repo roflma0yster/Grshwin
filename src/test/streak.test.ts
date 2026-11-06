@@ -6,7 +6,7 @@ describe("streak", () => {
   it("counts consecutive days ending today", () => {
     expect(computeStreak(["2026-10-21", "2026-10-20", "2026-10-19"], today)).toBe(3);
   });
-  it("still counts when today isn't practised yet", () => {
+  it("still counts when today isn't practiced yet", () => {
     expect(computeStreak(["2026-10-20", "2026-10-19"], today)).toBe(2);
   });
   it("breaks on a missed day", () => {

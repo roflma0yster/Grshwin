@@ -31,7 +31,7 @@ function Landing() {
         <div>
           <p className="mb-4 text-sm font-semibold uppercase tracking-widest text-primary">For Grades 4–6</p>
           <h1 className="font-display text-5xl leading-tight md:text-6xl">
-            Practise with purpose, not just repetition.
+            Practice with purpose, not just repetition.
           </h1>
           <p className="mt-6 max-w-md text-lg text-muted-foreground">
             A weekly plan built around your level and goals — warm-ups, drills, and a repertoire piece with a
@@ -39,7 +39,7 @@ function Landing() {
           </p>
           <div className="mt-8 flex gap-3">
             <Button asChild size="lg">
-              <Link to="/auth">Start practising</Link>
+              <Link to="/auth">Start practicing</Link>
             </Button>
           </div>
         </div>

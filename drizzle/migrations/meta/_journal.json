@@ -43,6 +43,13 @@
       "when": 1793933864671,
       "tag": "0005_ensure_scoring_result_fields",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793937464671,
+      "tag": "0006_player_level_and_skills",
+      "breakpoints": true
     }
   ]
 }
