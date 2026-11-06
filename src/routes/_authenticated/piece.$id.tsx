@@ -16,7 +16,7 @@ import { usePlayback } from "@/hooks/use-playback";
 import { InstrumentSelect, useInstrumentChoice } from "@/components/InstrumentSelect";
 
 export const Route = createFileRoute("/_authenticated/piece/$id")({
-  head: () => pageHead("Piece player — Grshwin", "Practise a piece with tempo, looping and metronome."),
+  head: () => pageHead("Piece player — Grshwin", "Practice a piece with tempo, looping and metronome."),
   component: PiecePlayer,
 });
 
