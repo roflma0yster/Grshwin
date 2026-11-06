@@ -20,5 +20,5 @@ function UserPiece() {
     if (downloadError || !blob) throw new Error("The score file could not be loaded.");
     return { ...piece, xml: await blob.text() };
   } });
-  return <><Link to="/upload" className="text-sm text-muted-foreground">← Your scores</Link>{isLoading ? <p className="mt-6">Loading score…</p> : error || !data ? <p role="alert" className="mt-6 text-destructive">This score is unavailable. Return to your scores and try again.</p> : <><h1 className="mt-3 font-display text-3xl">{data.title}</h1><p className="mt-1 text-muted-foreground">{data.composer}</p><ScorePlayback xml={data.xml} /><div className="mt-6"><SheetMusic xml={data.xml} zoom={1.1} /></div></>}</>;
+  return <><Link to="/library" className="text-sm text-muted-foreground">← Library</Link>{isLoading ? <p className="mt-6">Loading score…</p> : error || !data ? <p role="alert" className="mt-6 text-destructive">This score is unavailable. Return to your scores and try again.</p> : <><h1 className="mt-3 font-display text-3xl">{data.title}</h1><p className="mt-1 text-muted-foreground">{data.composer}</p><ScorePlayback xml={data.xml} /><div className="mt-6"><SheetMusic xml={data.xml} zoom={1.1} /></div></>}</>;
 }

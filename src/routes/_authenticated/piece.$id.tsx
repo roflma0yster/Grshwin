@@ -9,9 +9,11 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { demoMusicXml, parseNotes, practiceNotes } from "@/lib/music";
+import { demoMusicXml, parseNotes } from "@/lib/music";
 import { toast } from "sonner";
-import { barTransitions, followSuspended } from "@/lib/score-following";
+import { followSuspended } from "@/lib/score-following";
+import { usePlayback } from "@/hooks/use-playback";
+import { InstrumentSelect, useInstrumentChoice } from "@/components/InstrumentSelect";
 
 export const Route = createFileRoute("/_authenticated/piece/$id")({
   head: () => pageHead("Piece player — Grshwin", "Practise a piece with tempo, looping and metronome."),
@@ -48,11 +50,6 @@ function PiecePlayer() {
   const [loop, setLoop] = useState(false);
   const [from, setFrom] = useState(1);
   const [to, setTo] = useState(4);
-  const [playing, setPlaying] = useState(false);
-  const [current, setCurrent] = useState<number | null>(null);
-  const stopRef = useRef<() => void>(() => {});
-  const generation = useRef(0);
-  const [busy, setBusy] = useState(false);
   const [autoScroll, setAutoScroll] = useState(true);
   const [suspended, setSuspended] = useState(false);
   const [followRequest, setFollowRequest] = useState(0);
@@ -62,57 +59,14 @@ function PiecePlayer() {
   const parsed = useMemo(() => (xml ? parseNotes(xml) : null), [xml]);
   const measureCount = parsed ? parsed.measureStarts.length - 1 : 0;
   useEffect(() => { if (measureCount) setTo(Math.min(4, measureCount)); }, [measureCount]);
-  useEffect(() => {
-    setFrom(1); setCurrent(null); setPlaying(false);
-    return () => { generation.current++; stopRef.current(); stopRef.current = () => {}; };
-  }, [xml]);
+  useEffect(() => { setFrom(1); }, [xml]);
 
-  async function play() {
-    if (!parsed || busy) return;
-    const attempt = ++generation.current;
-    setBusy(true);
-    try {
-      const Tone = await import("tone");
-      await Tone.start();
-      if (attempt !== generation.current) return;
-      const transport = Tone.getTransport();
-      transport.stop(); transport.cancel(); transport.loop = false;
-      const synth = new Tone.PolySynth(Tone.Synth, { oscillator: { type: "triangle" }, envelope: { attack: 0.005, decay: 0.3, sustain: 0.3, release: 0.8 } }).toDestination();
-      synth.volume.value = -8;
-      const click = new Tone.MembraneSynth({ octaves: 2, envelope: { attack: 0.001, decay: 0.08, sustain: 0 } }).toDestination();
-      click.volume.value = -12;
-      stopRef.current = () => {
-        transport.stop(); transport.cancel(); transport.loop = false;
-        synth.dispose(); click.dispose();
-      };
-      const startM = loop ? from - 1 : 0;
-      const endM = loop ? to : measureCount;
-      const t0 = parsed.measureStarts[startM] ?? 0;
-      const t1 = parsed.measureStarts[endM] ?? 0;
-      const beat = 60 / tempo;
-      if (t1 <= t0) { stop(); return; }
-      practiceNotes(parsed.notes, t0, t1, hands).forEach((n) => transport.schedule((time) => synth.triggerAttackRelease(n.pitch, n.duration * beat * 0.95, time), n.start * beat));
-      barTransitions(parsed.measureStarts, startM, endM, tempo).forEach(({ bar, seconds }) => {
-        transport.schedule((time) => Tone.getDraw().schedule(() => {
-          if (attempt === generation.current) { setCurrent(bar); setFollowRequest((value) => value + 1); }
-        }, time), seconds);
-      });
-      if (metronome) for (let b = 0; b < t1 - t0; b++) {
-        transport.schedule((time) => click.triggerAttackRelease(parsed.measureStarts.includes(t0 + b) ? "C3" : "G2", "32n", time), b * beat);
-      }
-      if (loop) { transport.loop = true; transport.loopStart = 0; transport.loopEnd = (t1 - t0) * beat; }
-      else transport.schedule((time) => Tone.getDraw().schedule(() => { if (attempt === generation.current) stop(); }, time), (t1 - t0) * beat + 0.5);
-      setSuspended((value) => followSuspended(value, "start"));
-      transport.start("+0.1"); setPlaying(true);
-    } catch (error) { stop(); console.error("Score playback failed", error); toast.error("Playback could not start. Please try again."); }
-    finally { setBusy(false); }
-  }
-
-  function stop() {
-    generation.current++;
-    stopRef.current(); stopRef.current = () => {};
-    setPlaying(false); setCurrent(null);
-  }
+  const [instrumentId, setInstrumentId] = useInstrumentChoice();
+  const { playing, busy, current, activeInstrument, play: startPlayback, stop } = usePlayback(parsed, {
+    onBar: () => setFollowRequest((value) => value + 1),
+    onStart: () => setSuspended((value) => followSuspended(value, "start")),
+  });
+  const play = () => startPlayback({ tempo, hands, metronome, loop, from, to, instrumentId });
   const locked = playing || busy;
 
   if (!piece) return <p className="text-muted-foreground">Loading…</p>;
@@ -146,6 +100,7 @@ function PiecePlayer() {
               {h === "both" ? "Hands together" : `${h} hand`}
             </Button>
           ))}
+          <InstrumentSelect value={instrumentId} onChange={setInstrumentId} playingInstrument={activeInstrument} />
           <div className="flex flex-wrap items-center gap-2 text-sm md:ml-auto">
             <Switch id="loop" checked={loop} onCheckedChange={setLoop} disabled={locked} />
             <Label htmlFor="loop">Loop bars</Label>
