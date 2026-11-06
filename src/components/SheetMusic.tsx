@@ -62,7 +62,7 @@ export function SheetMusic({ xml, zoom = 1.1, activeBar = null, follow = false, 
             const bottom = Math.max(...boxes.map((box) => box.AbsolutePosition.y + box.BorderBottom));
             const pixel = (value: number) => osmd.Drawer.calculatePixelDistance(value);
             // Use the same backend conversion/transform as the rendered notes, including zoom and pages.
-            const node = backend.renderRectangle(new RectangleF2D(pixel(left), pixel(top), pixel(right - left), pixel(bottom - top)), 0, undefined, 1);
+            const node = backend.renderRectangle(new RectangleF2D(pixel(left), pixel(top), pixel(right - left), pixel(bottom - top)), 0, "var(--score-highlight)", 1);
             if (!(node instanceof Element)) continue;
             node.classList.add("score-active-bar"); node.setAttribute("data-active-bar", String(bar)); node.setAttribute("aria-hidden", "true");
             nodes.push(node);
