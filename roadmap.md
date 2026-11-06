@@ -1,4 +1,6 @@
 # Grshwin remaining features
+- [ ] Add Library bar highlighting and automatic scrolling
+- [ ] Test score following, loops, manual scrolling and mobile layout
 - [x] Uploaded-score hand selection, bar loops, metronome and private playback
 - [x] Make theory completion repeat-safe and add progress retry
 - [x] Keep ear-training answers safe when saving is retried
