@@ -1,18 +1,17 @@
 import { Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, type ReactNode } from "react";
-import { Home, Library, CalendarDays, BookOpen, Ear, Upload, Gauge, LogOut } from "lucide-react";
+import { Home, Library, CalendarDays, BookOpen, Ear, Gauge, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { profileQuery } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
-const NAV = [
+export const NAV = [
   { to: "/dashboard", label: "Home", icon: Home },
   { to: "/curriculum", label: "Plan", icon: CalendarDays },
   { to: "/library", label: "Library", icon: Library },
   { to: "/theory", label: "Theory", icon: BookOpen },
   { to: "/ear-training", label: "Ear", icon: Ear },
-  { to: "/upload", label: "Upload", icon: Upload },
   { to: "/scoring", label: "Scoring", icon: Gauge },
 ] as const;
 
