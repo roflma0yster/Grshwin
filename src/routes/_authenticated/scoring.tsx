@@ -17,6 +17,7 @@ import { DEFAULT_SCORING_METHOD, SCORING_METHODS, SCORING_METHOD_STORAGE_KEY, is
 import { pageHead } from "@/lib/head";
 import { AudioComparison } from "@/components/AudioComparison";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { MicLevelMeter } from "@/components/MicLevelMeter";
 
 export const Route = createFileRoute("/_authenticated/scoring")({
   head: () => pageHead("Performance scoring — Grshwin", "Compare private audio recordings or measure note accuracy and timing with piano exercises, using MIDI input or your microphone."),
@@ -49,6 +50,10 @@ function Scoring() {
   const [audioBusy, setAudioBusy] = useState(false);
   const [midiName, setMidiName] = useState("");
   const [problem, setProblem] = useState("");
+  const [details, setDetails] = useState("");
+  const [micLevel, setMicLevel] = useState(0);
+  const [testingMic, setTestingMic] = useState(false);
+  const micTest = useRef<MicRecording | null>(null);
   const active = useRef(false);
   const startTime = useRef(0);
   const results = useRef<(PerformanceHit | null)[]>([]);
@@ -79,7 +84,7 @@ function Scoring() {
     if (isScoringMethodId(stored)) { setMethod(stored); methodRef.current = stored; }
   }, []);
   useEffect(() => () => {
-    clearTimers(); active.current = false; analysisToken.current++; recorder.current?.cancel();
+    clearTimers(); active.current = false; analysisToken.current++; recorder.current?.cancel(); micTest.current?.cancel();
     if (midiRef.current) { midiRef.current.onstatechange = null; midiRef.current.inputs.forEach((i) => { i.onmidimessage = null; }); }
   }, []);
   function chooseMethod(value: string) {
@@ -105,7 +110,8 @@ function Scoring() {
       const scored = scorePerformance(MELODY, exercise.current.tempo, notes.map((n) => ({ ...n, start: n.start - shift })));
       results.current = scored.hits; setHits(scored.hits); setExtraNotes(scored.extraNotes); setFinished(true);
     } catch (e) {
-      if (token === analysisToken.current) setProblem(e instanceof Error && e.message ? e.message : "The recording could not be analysed. Please try again.");
+      console.error("Microphone analysis", e);
+      if (token === analysisToken.current) { setProblem(e instanceof Error && e.message ? e.message : "The recording could not be analysed. Please try again."); setDetails(e instanceof Error && "details" in e ? String(e.details) : String(e)); }
     } finally { if (token === analysisToken.current) setAnalysing(false); }
   }
   function finish() {
@@ -122,12 +128,12 @@ function Scoring() {
   }
   playRef.current = strike;
   async function start() {
-    setAudioBusy(true); setProblem("");
+    setAudioBusy(true); setProblem(""); setDetails("");
     try {
       const Tone = await import("tone"); await Tone.start();
       if (methodRef.current === "basic-pitch") {
-        try { recorder.current = await startMicRecording(); }
-        catch (e) { setProblem(e instanceof MicError ? e.message : "The microphone could not be started. Please try again."); return; }
+        try { const { checkModelAssets } = await import("@/lib/transcription"); await checkModelAssets(); micTest.current?.cancel(); setTestingMic(false); recorder.current = await startMicRecording(setMicLevel); }
+        catch (e) { console.error("Microphone preparation", e); setProblem(e instanceof Error ? e.message : "The microphone could not be started. Please try again."); setDetails(e instanceof Error && "details" in e ? String(e.details) : String(e)); return; }
       }
       clearTimers(); active.current = false; analysisToken.current++; runId.current = crypto.randomUUID(); results.current = Array.from({ length: MELODY.length }, () => null); setHits([...results.current]); setExtraNotes(0); setFinished(false); setCurrentNote(null); setSaved(false); setRunning(true); setCount(COUNT_IN_BEATS);
       const beat = 60000 / tempo;
@@ -140,6 +146,12 @@ function Scoring() {
       timers.current.push(window.setTimeout(finish, beat * (COUNT_IN_BEATS + MELODY.length - (methodRef.current === "basic-pitch" ? 0 : 0.5))));
     } catch { toast.error("Audio could not start. Try again."); recorder.current?.cancel(); recorder.current = null; }
     finally { setAudioBusy(false); }
+  }
+  async function testMicrophone() {
+    if (testingMic) { micTest.current?.cancel(); micTest.current = null; setTestingMic(false); setMicLevel(0); return; }
+    setProblem(""); setDetails("");
+    try { micTest.current = await startMicRecording(setMicLevel); setTestingMic(true); }
+    catch (e) { console.error("Microphone test", e); setProblem(e instanceof MicError ? e.message : "The microphone could not be started."); setDetails(String(e)); }
   }
   async function connect() {
     if (!navigator.requestMIDIAccess) { toast.error("MIDI is unavailable in this browser. Use the piano keys below."); return; }
@@ -181,10 +193,12 @@ function Scoring() {
     </RadioGroup>
     {!microphone && midiName && <p role="status" className="mb-4 text-sm text-muted-foreground">{midiName}</p>}
     {microphone && <p className="mb-4 flex items-start gap-2 text-sm text-muted-foreground"><Mic className="mt-0.5 h-4 w-4 shrink-0" />Your browser will ask to use the microphone when you press Start. Use headphones or keep the count-in quiet so the clicks are not picked up, and play each note as the highlighted beat arrives.</p>}
+    {microphone && <><Button variant="outline" disabled={running || analysing || audioBusy} onClick={testMicrophone}><Mic className="h-4 w-4" />{testingMic ? "Stop microphone test" : "Test microphone"}</Button>{(testingMic || running) && <MicLevelMeter level={micLevel} />}</>}
     <div className="flex flex-wrap items-center gap-6 border-y py-4"><Button disabled={audioBusy || saving || analysing} onClick={running ? finish : start}>{running ? <Square className="h-4 w-4" /> : <Play className="h-4 w-4" />}{running ? "Stop" : problem && microphone ? "Try again" : "Start exercise"}</Button><div className="min-w-40 max-w-xs flex-1 space-y-2"><p className="text-sm">Tempo · ♩ = {tempo}</p><Slider aria-label="Exercise tempo" min={40} max={120} step={5} value={[tempo]} disabled={locked} onValueChange={([v]) => setTempo(v ?? 60)} /></div></div>
     <div className="mt-8 grid grid-cols-8 gap-1" aria-label="Exercise notes">{MELODY.map((n, i) => <div key={i} className={`flex h-20 flex-col items-center justify-center gap-2 rounded-md border ${hits[i] ? hits[i]?.correct ? "bg-accent text-accent-foreground" : "bg-destructive/10 text-destructive" : running && currentNote === i ? "border-primary bg-secondary" : finished || (currentNote !== null && i < currentNote) ? "bg-muted text-muted-foreground" : "bg-card"}`}><span className="text-xs text-muted-foreground">{i + 1}</span><span className="font-display text-xl">{noteName(n).replace("4", "")}</span></div>)}</div>
     <p role="status" className="my-5 min-h-7 text-center font-semibold">{count !== null ? `Count in: ${count}` : running ? `${(currentNote ?? 0) + 1} / 8${microphone ? " · listening" : ""}` : analysing ? "Analysing your recording…" : finished ? "Exercise finished" : "Ready"}</p>
     {problem && <p role="alert" className="mb-5 text-center text-destructive">{problem}</p>}
+    {problem && details && <details className="mb-5 break-words text-sm text-muted-foreground"><summary>Technical details</summary>{details}</details>}
     {!microphone && <div className="mx-auto grid max-w-xl grid-cols-7 gap-1" aria-label="Piano">{KEYS.map((k) => <Button key={k.midi} variant="outline" className="h-32 items-end pb-4 text-base" aria-label={`Play ${k.name}`} disabled={!running || count !== null} onClick={() => { strike(k.midi); void soundSequence([{ midi: k.midi, at: 0, duration: 0.15 }]).catch(() => {}); }}>{k.name}</Button>)}</div>}
     {!running && !analysing && finished && <section className="mt-8 space-y-6 border-y py-6">
       <div className="flex flex-wrap items-center justify-between gap-6"><div><p className="font-display text-3xl">{accuracy}%</p><p className="text-sm text-muted-foreground">{correct} of 8 notes correct · {8 - played.length} missed{microphone && ` · ${extraNotes} extra`}</p></div><div><p className="font-display text-3xl">{timing === null ? "—" : `${timing} ms`}</p><p className="text-sm text-muted-foreground">Average timing deviation</p></div><div><p className="font-display text-xl">{scoringMethodLabel(method)}</p><p className="text-sm text-muted-foreground">Scoring method</p></div><Button onClick={save} disabled={saving || saved}><Save className="h-4 w-4" />{saved ? "Saved" : saving ? "Saving…" : "Save result"}</Button></div>
