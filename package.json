@@ -15,6 +15,7 @@
     "setup:basic-pitch": "node scripts/copy-basic-pitch-model.mjs"
   },
   "overrides": {
+    "@tensorflow/tfjs": "4.22.0",
     "rolldown": "1.2.1"
   },
   "dependencies": {

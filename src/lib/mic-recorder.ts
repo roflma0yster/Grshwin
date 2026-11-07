@@ -1,4 +1,5 @@
 // Browser-only microphone capture. Call only from a user gesture (the Start button).
+import { audioLevel } from "@/lib/audio-levels";
 export type MicErrorCode = "denied" | "no-device" | "unsupported" | "failed";
 
 export class MicError extends Error {
@@ -19,7 +20,7 @@ const WORKLET = `class PcmRecorder extends AudioWorkletProcessor {
 }
 registerProcessor("pcm-recorder", PcmRecorder);`;
 
-export async function startMicRecording(): Promise<MicRecording> {
+export async function startMicRecording(onLevel?: (level: number) => void): Promise<MicRecording> {
   if (!navigator.mediaDevices?.getUserMedia || typeof AudioWorkletNode === "undefined") {
     throw new MicError("unsupported", "This browser cannot record from a microphone. Use the Classic method instead.");
   }
@@ -49,7 +50,8 @@ export async function startMicRecording(): Promise<MicRecording> {
     await ctx.resume();
     const source = ctx.createMediaStreamSource(stream);
     const recorder = new AudioWorkletNode(ctx, "pcm-recorder");
-    recorder.port.onmessage = (e: MessageEvent<Float32Array>) => { if (!done) chunks.push(e.data); };
+    let lastMeter = 0;
+    recorder.port.onmessage = (e: MessageEvent<Float32Array>) => { if (!done) { chunks.push(e.data); if (performance.now() - lastMeter > 80) { onLevel?.(audioLevel(e.data)); lastMeter = performance.now(); } } };
     // Some browsers only run a node that reaches the output, so route it through a muted gain.
     const mute = ctx.createGain(); mute.gain.value = 0;
     source.connect(recorder); recorder.connect(mute); mute.connect(ctx.destination);

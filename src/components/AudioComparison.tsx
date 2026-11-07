@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { AudioLines, Save, FolderOpen, RotateCcw, Trash2 } from "lucide-react";
+import { AudioLines, Save, FolderOpen, RotateCcw, Trash2, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,7 +26,8 @@ export function AudioComparison() {
   const [busy, setBusy] = useState(""), [error, setError] = useState(""), [saved, setSaved] = useState(false);
   const attempt = useRef<string | null>(null), urls = useRef<string[]>([]), generation = useRef(0);
   const baselineAudio = useRef<HTMLAudioElement | null>(null), performanceAudio = useRef<HTMLAudioElement | null>(null);
-  useEffect(() => () => { generation.current++; urls.current.forEach((url) => URL.revokeObjectURL(url)); }, []);
+  const cancellation = useRef<AbortController | null>(null);
+  useEffect(() => () => { generation.current++; cancellation.current?.abort(); urls.current.forEach((url) => URL.revokeObjectURL(url)); }, []);
   const history = useQuery({ queryKey: ["audio-comparisons"], queryFn: async () => {
     const { data, error } = await supabase.from("audio_comparisons").select("*").order("created_at", { ascending: false }).limit(20);
     if (error) throw error; return data;
@@ -47,15 +48,32 @@ export function AudioComparison() {
   }
   async function compare() {
     if (!baseline || !performance) return;
+    const token = ++generation.current;
+    const controller = new AbortController(); cancellation.current = controller;
     setBusy("Comparing recordings…"); resetResult();
     try {
       await new Promise((resolve) => window.setTimeout(resolve, 40));
       const analysis = await import("@/lib/audio-comparison");
       const a = analysis.extractFeatures(baseline.samples, baseline.sampleRate, baseline.start, baseline.end);
       const b = analysis.extractFeatures(performance.samples, performance.sampleRate, performance.start, performance.end);
-      setResult(analysis.compareFeatures(a, b)); attempt.current = crypto.randomUUID();
-    } catch (e) { setError(e instanceof Error ? e.message : "Comparison failed. Try another excerpt."); }
-    finally { setBusy(""); }
+      const compared = analysis.compareFeatures(a, b);
+      try {
+        const { transcribe } = await import("@/lib/transcription");
+        const reference = await transcribe(baseline.samples, baseline.sampleRate, (p) => { if (token === generation.current) setBusy(`Analysing baseline notes · ${Math.round(p * 100)}%`); }, { start: baseline.start, end: baseline.end, signal: controller.signal });
+        const played = await transcribe(performance.samples, performance.sampleRate, (p) => { if (token === generation.current) setBusy(`Analysing performance notes · ${Math.round(p * 100)}%`); }, { start: performance.start, end: performance.end, signal: controller.signal });
+        const { compareNotes } = await import("@/lib/note-comparison");
+        if (!reference.length || !played.length) throw new Error("No reliable notes were detected in one of the recordings.");
+        compared.noteFeedback = compareNotes(reference, played, compared.segments);
+        compared.confidence = Math.round(Math.min(a.tonalFraction, b.tonalFraction) * 90);
+        if (Math.abs(compared.similarity - compared.noteFeedback.accuracy) > 30) { compared.confidence = Math.min(40, compared.confidence); compared.warnings.push("Pitch patterns and transcribed notes disagree. Octave or voicing differences, or transcription errors, may explain the result."); }
+      } catch (e) {
+        if (controller.signal.aborted) return;
+        console.error("Note feedback unavailable", e);
+        compared.noteUnavailable = e instanceof Error ? e.message : "Note detection failed.";
+      }
+      if (token === generation.current && !controller.signal.aborted) { setResult(compared); attempt.current = crypto.randomUUID(); }
+    } catch (e) { if (token === generation.current) setError(e instanceof Error ? e.message : "Comparison failed. Try another excerpt."); }
+    finally { if (token === generation.current) { setBusy(""); cancellation.current = null; } }
   }
   async function save() {
     if (!result || !baseline || !performance || !attempt.current || saved) return;
@@ -115,7 +133,10 @@ export function AudioComparison() {
       </div>;
     })}</div>
     <div className="flex flex-wrap items-center gap-3"><Button onClick={compare} disabled={!baseline || !performance || !!busy}><AudioLines className="h-4 w-4" />Compare recordings</Button>{result && <Button variant="outline" disabled={!!busy || saved} onClick={save}><Save className="h-4 w-4" />{saved ? "Saved privately" : "Save comparison"}</Button>}{busy && <p role="status" className="text-sm text-muted-foreground">{busy}</p>}</div>
+    {busy && cancellation.current && <Button variant="outline" onClick={() => { cancellation.current?.abort(); cancellation.current = null; generation.current++; setBusy(""); }}><Square className="h-4 w-4" />Cancel analysis</Button>}
     {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+    {result?.noteFeedback && <p role="status" className="text-sm">Transcription-based note accuracy: {result.noteFeedback.accuracy}% · {result.noteFeedback.matched} matched · {result.noteFeedback.wrong} wrong · {result.noteFeedback.missed} missed · {result.noteFeedback.extra} extra · Confidence: {result.confidence}%</p>}
+    {result?.noteUnavailable && <p className="text-sm text-muted-foreground">Note-level feedback unavailable: {result.noteUnavailable} Acoustic comparison remains available.</p>}
     {result && <section aria-label="Audio comparison results" className="border-y py-6"><div className="grid gap-6 sm:grid-cols-3"><div><p className="font-display text-3xl">{result.similarity}%</p><p className="text-sm text-muted-foreground">Pitch-pattern similarity</p></div><div><p className="font-display text-3xl">{result.tempoRatio.toFixed(2)}×</p><p className="text-sm text-muted-foreground">Relative tempo · 1.00× matches</p></div><div><p className="font-display text-3xl">{result.timingDeviationMs} ms</p><p className="text-sm text-muted-foreground">Alignment variation</p></div></div><ul className="mt-4 space-y-1 text-sm text-muted-foreground">{result.warnings.map((w) => <li key={w}>{w}</li>)}</ul><h3 className="mt-6 font-semibold">Passage comparison</h3><div className="mt-2 max-h-56 overflow-y-auto"><table className="w-full text-left text-sm"><thead><tr><th className="py-2">Baseline</th><th>Performance</th><th>Similarity</th></tr></thead><tbody>{result.segments.map((s, i) => <tr key={i} className="border-t"><td className="py-2">{s.baselineTime.toFixed(1)} s</td><td>{s.performanceTime.toFixed(1)} s</td><td>{s.similarity}%</td></tr>)}</tbody></table></div></section>}
     <section><h2 className="font-display text-2xl">Saved comparisons</h2>{history.isLoading ? <p role="status" className="mt-3 text-muted-foreground">Loading comparisons…</p> : history.error ? <Button variant="outline" onClick={() => history.refetch()}><RotateCcw className="h-4 w-4" />Retry saved comparisons</Button> : history.data?.length ? <ul className="mt-3 divide-y">{history.data.map((row) => <li key={row.id} className="flex flex-wrap items-center justify-between gap-3 py-3"><div className="min-w-0 flex-1"><p className="break-words text-sm">{row.performance_name}</p><p className="break-words text-xs text-muted-foreground">Against {row.baseline_name} · {new Date(row.created_at).toLocaleDateString()}</p></div><div className="flex gap-2"><Button variant="outline" disabled={!!busy} onClick={() => reopen(row)}><FolderOpen className="h-4 w-4" />Open</Button><Button variant="ghost" size="icon" aria-label={`Delete ${row.performance_name}`} title="Delete comparison" disabled={!!busy} onClick={() => remove(row)}><Trash2 className="h-4 w-4" /></Button></div></li>)}</ul> : <p className="mt-3 text-sm text-muted-foreground">No saved audio comparisons yet.</p>}</section>
   </section>;

@@ -5,7 +5,7 @@ export const AUDIO_MAX_BYTES = 20 * 1024 * 1024;
 export const AUDIO_MAX_SECONDS = 300;
 export type AudioFrame = { time: number; chroma: number[]; rms: number };
 export type AudioFeatures = { frames: AudioFrame[]; start: number; end: number; tonalFraction: number };
-export type ComparisonResult = { version: 1; similarity: number; tempoRatio: number; timingDeviationMs: number; baselineActiveSeconds: number; performanceActiveSeconds: number; warnings: string[]; segments: { baselineTime: number; performanceTime: number; similarity: number }[] };
+export type ComparisonResult = { version: 1; similarity: number; tempoRatio: number; timingDeviationMs: number; baselineActiveSeconds: number; performanceActiveSeconds: number; warnings: string[]; segments: { baselineTime: number; performanceTime: number; similarity: number }[]; noteFeedback?: import("@/lib/note-comparison").NoteComparison; noteUnavailable?: string; confidence?: number };
 
 export function validateAudioFile(file: { name: string; size: number }) {
   if (!/\.(wav|mp3|m4a)$/i.test(file.name)) throw new Error("Choose a WAV, MP3 or M4A recording.");
@@ -63,7 +63,7 @@ export function compareFeatures(baseline: AudioFeatures, performance: AudioFeatu
   const warnings = ["Pitch-pattern similarity is not note accuracy; octaves and chords can sound similar. Timing reflects alignment, not beat-by-beat scoring."];
   if (Math.min(baseline.tonalFraction, performance.tonalFraction) < 0.7) warnings.push("Background noise may reduce reliability.");
   if (score < 60) warnings.push("The recordings may contain different music; alignment may be unreliable.");
-  return { version: 1, similarity: score, tempoRatio: baselineDuration / performanceDuration, timingDeviationMs: Math.round(deviation * 1000), baselineActiveSeconds: baselineDuration, performanceActiveSeconds: performanceDuration, warnings, segments: segments.filter((_, i) => i % Math.max(1, Math.ceil(segments.length / 80)) === 0) };
+  return { version: 1, similarity: score, tempoRatio: baselineDuration / performanceDuration, timingDeviationMs: Math.round(deviation * 1000), baselineActiveSeconds: baselineDuration, performanceActiveSeconds: performanceDuration, warnings, segments };
 }
 
 export async function decodeRecording(file: Blob) {
