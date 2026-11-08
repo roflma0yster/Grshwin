@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
-import type { ComparisonResult } from "@/lib/audio-comparison";
+import type { StoredComparison, Finding } from "@/lib/comparison-feedback";
+import { ComparisonFeedback } from "@/components/ComparisonFeedback";
 
 type Recording = { file: File; url: string; samples: Float32Array; sampleRate: number; duration: number; start: number; end: number };
 type Saved = Tables<"audio_comparisons">;
@@ -22,11 +23,12 @@ function Waveform({ samples }: { samples: Float32Array }) {
 export function AudioComparison() {
   const qc = useQueryClient();
   const [baseline, setBaseline] = useState<Recording | null>(null), [performance, setPerformance] = useState<Recording | null>(null);
-  const [result, setResult] = useState<ComparisonResult | null>(null);
+  const [result, setResult] = useState<StoredComparison | null>(null);
   const [busy, setBusy] = useState(""), [error, setError] = useState(""), [saved, setSaved] = useState(false);
   const attempt = useRef<string | null>(null), urls = useRef<string[]>([]), generation = useRef(0);
   const baselineAudio = useRef<HTMLAudioElement | null>(null), performanceAudio = useRef<HTMLAudioElement | null>(null);
   const cancellation = useRef<AbortController | null>(null);
+  const seeking = useRef(false), preview = useRef(0);
   useEffect(() => () => { generation.current++; cancellation.current?.abort(); urls.current.forEach((url) => URL.revokeObjectURL(url)); }, []);
   const history = useQuery({ queryKey: ["audio-comparisons"], queryFn: async () => {
     const { data, error } = await supabase.from("audio_comparisons").select("*").order("created_at", { ascending: false }).limit(20);
@@ -71,7 +73,7 @@ export function AudioComparison() {
         console.error("Note feedback unavailable", e);
         compared.noteUnavailable = e instanceof Error ? e.message : "Note detection failed.";
       }
-      if (token === generation.current && !controller.signal.aborted) { setResult(compared); attempt.current = crypto.randomUUID(); }
+      if (token === generation.current && !controller.signal.aborted) { const { detailedFeedback } = await import("@/lib/comparison-feedback"); setResult(detailedFeedback(compared, a, b)); attempt.current = crypto.randomUUID(); }
     } catch (e) { if (token === generation.current) setError(e instanceof Error ? e.message : "Comparison failed. Try another excerpt."); }
     finally { if (token === generation.current) { setBusy(""); cancellation.current = null; } }
   }
@@ -106,9 +108,20 @@ export function AudioComparison() {
         const url = URL.createObjectURL(data); urls.current.push(url);
         return { ...decoded, url, file: new File([data], String(name)), start: Number(start), end: Number(end) };
       }));
-      setBaseline(recordings[0] ?? null); setPerformance(recordings[1] ?? null); setResult(row.result as unknown as ComparisonResult); setSaved(true); attempt.current = row.id;
+      setBaseline(recordings[0] ?? null); setPerformance(recordings[1] ?? null); const { readStoredComparison } = await import("@/lib/comparison-feedback"); setResult(readStoredComparison(row.result)); setSaved(true); attempt.current = row.id;
     } catch (e) { setError(e instanceof Error ? e.message : "Saved comparison could not be opened."); }
     finally { setBusy(""); }
+  }
+  /** Plays four seconds of the reference from the finding, then the same aligned moment of the performance. */
+  function playFrom(f: Finding) {
+    const token = ++preview.current;
+    const clip = (audio: HTMLAudioElement | null, at: number) => new Promise<void>((resolve) => {
+      if (!audio || token !== preview.current) return resolve();
+      seeking.current = true; audio.currentTime = at; void audio.play().catch(() => resolve());
+      window.setTimeout(() => { audio.pause(); resolve(); }, 4000);
+    });
+    baselineAudio.current?.pause(); performanceAudio.current?.pause();
+    void clip(baselineAudio.current, (baseline?.start ?? 0) + f.baselineTime).then(() => clip(performanceAudio.current, (performance?.start ?? 0) + f.performanceTime));
   }
   async function remove(row: Saved) {
     if (!window.confirm("Delete this comparison and both recordings?")) return;
@@ -127,7 +140,7 @@ export function AudioComparison() {
       const audioRef = kind === "baseline" ? baselineAudio : performanceAudio;
       const label = kind === "baseline" ? "Baseline recording" : "My performance";
       return <div key={kind} className="min-w-0 rounded-md border bg-card p-4"><label htmlFor={`audio-${kind}`} className="font-semibold">{label}</label><Input id={`audio-${kind}`} type="file" accept=".wav,.mp3,.m4a" className="mt-3" disabled={!!busy} onChange={(e) => { void choose(e.target.files?.[0], kind); e.target.value = ""; }} />
-        {recording ? <><p className="mt-3 break-words text-sm">{recording.file.name} · {recording.duration.toFixed(1)} s</p><Waveform samples={recording.samples} /><audio ref={audioRef} aria-label={`${label} playback`} className="w-full" src={recording.url} controls preload="metadata" onPlay={() => { const other = kind === "baseline" ? performanceAudio : baselineAudio; other.current?.pause(); if (audioRef.current) audioRef.current.currentTime = recording.start; }} onTimeUpdate={() => { if (audioRef.current && audioRef.current.currentTime >= recording.end) audioRef.current.pause(); }} />
+        {recording ? <><p className="mt-3 break-words text-sm">{recording.file.name} · {recording.duration.toFixed(1)} s</p><Waveform samples={recording.samples} /><audio ref={audioRef} aria-label={`${label} playback`} className="w-full" src={recording.url} controls preload="metadata" onPlay={() => { const other = kind === "baseline" ? performanceAudio : baselineAudio; other.current?.pause(); if (seeking.current) { seeking.current = false; return; } if (audioRef.current) audioRef.current.currentTime = recording.start; }} onTimeUpdate={() => { if (audioRef.current && audioRef.current.currentTime >= recording.end) audioRef.current.pause(); }} />
           <div className="mt-4 grid grid-cols-2 gap-3">{(["start", "end"] as const).map((boundary) => <label key={boundary} className="text-xs text-muted-foreground">{boundary === "start" ? "Start" : "End"} (seconds)<Input aria-label={`${label} ${boundary}`} type="number" min={0} max={recording.duration} step={0.1} value={Number(recording[boundary].toFixed(2))} disabled={!!busy} onChange={(e) => { update({ ...recording, [boundary]: Number(e.target.value) }); resetResult(); }} /></label>)}</div>
         </> : <div className="flex h-40 items-center justify-center text-muted-foreground"><AudioLines className="h-10 w-10" aria-hidden /></div>}
       </div>;
@@ -135,9 +148,7 @@ export function AudioComparison() {
     <div className="flex flex-wrap items-center gap-3"><Button onClick={compare} disabled={!baseline || !performance || !!busy}><AudioLines className="h-4 w-4" />Compare recordings</Button>{result && <Button variant="outline" disabled={!!busy || saved} onClick={save}><Save className="h-4 w-4" />{saved ? "Saved privately" : "Save comparison"}</Button>}{busy && <p role="status" className="text-sm text-muted-foreground">{busy}</p>}</div>
     {busy && cancellation.current && <Button variant="outline" onClick={() => { cancellation.current?.abort(); cancellation.current = null; generation.current++; setBusy(""); }}><Square className="h-4 w-4" />Cancel analysis</Button>}
     {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
-    {result?.noteFeedback && <p role="status" className="text-sm">Transcription-based note accuracy: {result.noteFeedback.accuracy}% · {result.noteFeedback.matched} matched · {result.noteFeedback.wrong} wrong · {result.noteFeedback.missed} missed · {result.noteFeedback.extra} extra · Confidence: {result.confidence}%</p>}
-    {result?.noteUnavailable && <p className="text-sm text-muted-foreground">Note-level feedback unavailable: {result.noteUnavailable} Acoustic comparison remains available.</p>}
-    {result && <section aria-label="Audio comparison results" className="border-y py-6"><div className="grid gap-6 sm:grid-cols-3"><div><p className="font-display text-3xl">{result.similarity}%</p><p className="text-sm text-muted-foreground">Pitch-pattern similarity</p></div><div><p className="font-display text-3xl">{result.tempoRatio.toFixed(2)}×</p><p className="text-sm text-muted-foreground">Relative tempo · 1.00× matches</p></div><div><p className="font-display text-3xl">{result.timingDeviationMs} ms</p><p className="text-sm text-muted-foreground">Alignment variation</p></div></div><ul className="mt-4 space-y-1 text-sm text-muted-foreground">{result.warnings.map((w) => <li key={w}>{w}</li>)}</ul><h3 className="mt-6 font-semibold">Passage comparison</h3><div className="mt-2 max-h-56 overflow-y-auto"><table className="w-full text-left text-sm"><thead><tr><th className="py-2">Baseline</th><th>Performance</th><th>Similarity</th></tr></thead><tbody>{result.segments.map((s, i) => <tr key={i} className="border-t"><td className="py-2">{s.baselineTime.toFixed(1)} s</td><td>{s.performanceTime.toFixed(1)} s</td><td>{s.similarity}%</td></tr>)}</tbody></table></div></section>}
+    {result && <ComparisonFeedback result={result} onPlay={playFrom} />}
     <section><h2 className="font-display text-2xl">Saved comparisons</h2>{history.isLoading ? <p role="status" className="mt-3 text-muted-foreground">Loading comparisons…</p> : history.error ? <Button variant="outline" onClick={() => history.refetch()}><RotateCcw className="h-4 w-4" />Retry saved comparisons</Button> : history.data?.length ? <ul className="mt-3 divide-y">{history.data.map((row) => <li key={row.id} className="flex flex-wrap items-center justify-between gap-3 py-3"><div className="min-w-0 flex-1"><p className="break-words text-sm">{row.performance_name}</p><p className="break-words text-xs text-muted-foreground">Against {row.baseline_name} · {new Date(row.created_at).toLocaleDateString()}</p></div><div className="flex gap-2"><Button variant="outline" disabled={!!busy} onClick={() => reopen(row)}><FolderOpen className="h-4 w-4" />Open</Button><Button variant="ghost" size="icon" aria-label={`Delete ${row.performance_name}`} title="Delete comparison" disabled={!!busy} onClick={() => remove(row)}><Trash2 className="h-4 w-4" /></Button></div></li>)}</ul> : <p className="mt-3 text-sm text-muted-foreground">No saved audio comparisons yet.</p>}</section>
   </section>;
 }
