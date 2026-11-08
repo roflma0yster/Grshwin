@@ -39,7 +39,7 @@ function Landing() {
           </p>
           <div className="mt-8 flex gap-3">
             <Button asChild size="lg">
-              <Link to="/auth">Start practicing</Link>
+              <Link to="/dashboard">Start practicing</Link>
             </Button>
           </div>
         </div>

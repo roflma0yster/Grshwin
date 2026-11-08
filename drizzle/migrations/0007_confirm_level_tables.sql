@@ -1,0 +1,1 @@
+COMMENT ON TABLE public.player_ratings IS 'Player level rating, written only by server functions.';
