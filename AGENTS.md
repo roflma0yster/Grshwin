@@ -23,7 +23,7 @@
 - Performance scoring methods are selectable (`src/lib/scoring-methods.ts`): Classic scores MIDI/on-screen input; Basic Pitch transcribes microphone audio. Every method scores the fixed exercise only, not arbitrary repertoire; this keeps feedback based on captured notes.
 - Performance inputs are matched to beat slots, leaving skipped slots missed; save timing and note counts with the exercise so history retains the measured result.
 - Learning writes use unique user/topic completion or stable attempt IDs for retries so repeated requests cannot double-count progress.
-- Audio-file comparisons use normalized FFT pitch-class features and dynamic time warping in browser handlers; label acoustic similarity separately from exercise note accuracy because recordings are not transcribed.
+- Audio-file comparisons use normalized FFT pitch-class features and dynamic time warping in browser handlers; then Basic Pitch transcribes both excerpts (≤2 min) for note matching through the DTW alignment; note feedback is labelled transcription-based with a confidence score, and the chroma-only result remains the fallback.
 - Comparison recordings and results are private owner-scoped data; save stable attempt IDs and owner-prefixed storage paths so retries cannot create duplicate history.
 - Score playback has one engine, `src/hooks/use-playback.ts`, shared by the catalog piece player and the uploaded-score player; do not copy it into a screen. Tone is loaded inside the Play click and every node it creates is disposed on stop, unmount and score change.
 - Playback instruments come from the registry in `src/lib/instruments.ts` (Tone.js built-in synths, nothing downloaded). Add a voice there, not in a screen; a changed choice applies on the next Play and is remembered on the device.
@@ -34,3 +34,4 @@
 - Recommendations are ranked deterministically in `src/lib/recommend.ts`. Any AI step may only reword that result; it must not add, remove or reorder pieces, and every `pieceId` is checked against the ranked list.
 - Skill tags come only from the `skills` taxonomy table; never create skills from model output or user text. Tags are written by migration or reviewed scripts, not at runtime.
 - Visitors without an account get an automatic guest session in the `_authenticated` gate — keeps every owner-scoped table and server check working without forced sign-in.
+- Saved audio comparison results are versioned jsonb: version 2 adds deterministic pitch/tempo/dynamics cards and coaching (`src/lib/comparison-feedback.ts`); version 1 rows must still open without invented details.

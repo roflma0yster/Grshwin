@@ -28,6 +28,7 @@ export function AudioComparison() {
   const attempt = useRef<string | null>(null), urls = useRef<string[]>([]), generation = useRef(0);
   const baselineAudio = useRef<HTMLAudioElement | null>(null), performanceAudio = useRef<HTMLAudioElement | null>(null);
   const cancellation = useRef<AbortController | null>(null);
+  const seeking = useRef(false), preview = useRef(0);
   useEffect(() => () => { generation.current++; cancellation.current?.abort(); urls.current.forEach((url) => URL.revokeObjectURL(url)); }, []);
   const history = useQuery({ queryKey: ["audio-comparisons"], queryFn: async () => {
     const { data, error } = await supabase.from("audio_comparisons").select("*").order("created_at", { ascending: false }).limit(20);
@@ -111,14 +112,16 @@ export function AudioComparison() {
     } catch (e) { setError(e instanceof Error ? e.message : "Saved comparison could not be opened."); }
     finally { setBusy(""); }
   }
+  /** Plays four seconds of the reference from the finding, then the same aligned moment of the performance. */
   function playFrom(f: Finding) {
-    const pairs = [[baselineAudio.current, f.baselineTime + (baseline?.start ?? 0)], [performanceAudio.current, f.performanceTime + (performance?.start ?? 0)]] as const;
-    pairs.forEach(([audio]) => audio?.pause());
-    const [[a, at]] = pairs; if (!a) return;
-    a.currentTime = at; void a.play();
-    a.onended = null;
-    const other = pairs[1]; const stop = () => { a.removeEventListener("pause", stop); if (other[0]) { other[0].currentTime = other[1]; void other[0].play(); } };
-    window.setTimeout(() => { a.pause(); }, 5000); a.addEventListener("pause", stop);
+    const token = ++preview.current;
+    const clip = (audio: HTMLAudioElement | null, at: number) => new Promise<void>((resolve) => {
+      if (!audio || token !== preview.current) return resolve();
+      seeking.current = true; audio.currentTime = at; void audio.play().catch(() => resolve());
+      window.setTimeout(() => { audio.pause(); resolve(); }, 4000);
+    });
+    baselineAudio.current?.pause(); performanceAudio.current?.pause();
+    void clip(baselineAudio.current, (baseline?.start ?? 0) + f.baselineTime).then(() => clip(performanceAudio.current, (performance?.start ?? 0) + f.performanceTime));
   }
   async function remove(row: Saved) {
     if (!window.confirm("Delete this comparison and both recordings?")) return;
@@ -137,7 +140,7 @@ export function AudioComparison() {
       const audioRef = kind === "baseline" ? baselineAudio : performanceAudio;
       const label = kind === "baseline" ? "Baseline recording" : "My performance";
       return <div key={kind} className="min-w-0 rounded-md border bg-card p-4"><label htmlFor={`audio-${kind}`} className="font-semibold">{label}</label><Input id={`audio-${kind}`} type="file" accept=".wav,.mp3,.m4a" className="mt-3" disabled={!!busy} onChange={(e) => { void choose(e.target.files?.[0], kind); e.target.value = ""; }} />
-        {recording ? <><p className="mt-3 break-words text-sm">{recording.file.name} · {recording.duration.toFixed(1)} s</p><Waveform samples={recording.samples} /><audio ref={audioRef} aria-label={`${label} playback`} className="w-full" src={recording.url} controls preload="metadata" onPlay={() => { const other = kind === "baseline" ? performanceAudio : baselineAudio; other.current?.pause(); if (audioRef.current) audioRef.current.currentTime = recording.start; }} onTimeUpdate={() => { if (audioRef.current && audioRef.current.currentTime >= recording.end) audioRef.current.pause(); }} />
+        {recording ? <><p className="mt-3 break-words text-sm">{recording.file.name} · {recording.duration.toFixed(1)} s</p><Waveform samples={recording.samples} /><audio ref={audioRef} aria-label={`${label} playback`} className="w-full" src={recording.url} controls preload="metadata" onPlay={() => { const other = kind === "baseline" ? performanceAudio : baselineAudio; other.current?.pause(); if (seeking.current) { seeking.current = false; return; } if (audioRef.current) audioRef.current.currentTime = recording.start; }} onTimeUpdate={() => { if (audioRef.current && audioRef.current.currentTime >= recording.end) audioRef.current.pause(); }} />
           <div className="mt-4 grid grid-cols-2 gap-3">{(["start", "end"] as const).map((boundary) => <label key={boundary} className="text-xs text-muted-foreground">{boundary === "start" ? "Start" : "End"} (seconds)<Input aria-label={`${label} ${boundary}`} type="number" min={0} max={recording.duration} step={0.1} value={Number(recording[boundary].toFixed(2))} disabled={!!busy} onChange={(e) => { update({ ...recording, [boundary]: Number(e.target.value) }); resetResult(); }} /></label>)}</div>
         </> : <div className="flex h-40 items-center justify-center text-muted-foreground"><AudioLines className="h-10 w-10" aria-hidden /></div>}
       </div>;
