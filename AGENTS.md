@@ -33,3 +33,4 @@
 - Songs a player says they can play are unverified claims: they carry low weight, cannot lift the rating far above the onboarding or scored level, and never enter the shared `pieces` catalog. Uploads and their skill tags stay owner-scoped.
 - Recommendations are ranked deterministically in `src/lib/recommend.ts`. Any AI step may only reword that result; it must not add, remove or reorder pieces, and every `pieceId` is checked against the ranked list.
 - Skill tags come only from the `skills` taxonomy table; never create skills from model output or user text. Tags are written by migration or reviewed scripts, not at runtime.
+- Visitors without an account get an automatic guest session in the `_authenticated` gate — keeps every owner-scoped table and server check working without forced sign-in.
