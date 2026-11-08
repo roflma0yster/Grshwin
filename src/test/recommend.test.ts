@@ -23,8 +23,8 @@ describe("difficulty band", () => {
   });
   it("labels fit by distance above the player's rating", () => {
     const fits = Object.fromEntries(recommend(LIB, player()).recommendations.map((r) => [r.piece.id, r.fit]));
-    expect(fits.near).toBe("comfortable");
-    expect(fits.stretch).toBe("stretch");
+    expect(fits["near"]).toBe("comfortable");
+    expect(fits["stretch"]).toBe("stretch");
   });
   it("widens the band and says so when the rating is uncertain", () => {
     const certain = recommend(LIB, player({ rating: 1000 })).recommendations.map((r) => r.piece.id);

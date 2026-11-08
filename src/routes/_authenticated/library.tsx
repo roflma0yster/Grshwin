@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/library")({
   head: () => pageHead("Library — Grshwin", "Public-domain repertoire for intermediate pianists."),
-  validateSearch: (search: Record<string, unknown>): { like?: string } => ({ like: typeof search.like === "string" && search.like ? search.like : undefined }),
+  validateSearch: (search: Record<string, unknown>): { like?: string } => (typeof search["like"] === "string" && search["like"] ? { like: search["like"] } : {}),
   component: LibraryPage,
 });
 
