@@ -34,18 +34,23 @@ export function AudioComparison() {
     const { data, error } = await supabase.from("audio_comparisons").select("*").order("created_at", { ascending: false }).limit(20);
     if (error) throw error; return data;
   } });
+  const picks = useRef({ baseline: 0, performance: 0 }), unmounted = useRef(false);
+  useEffect(() => { unmounted.current = false; return () => { unmounted.current = true; }; }, []);
+  const cancelledSince = (_token: number) => unmounted.current;
   function resetResult() { setResult(null); setSaved(false); attempt.current = null; setError(""); }
   async function choose(file: File | undefined, kind: "baseline" | "performance") {
     if (!file) return;
-    const token = ++generation.current; setBusy("Opening recording…"); resetResult();
+    // Each side has its own counter so opening one recording never discards the other mid-decode.
+    const token = ++generation.current, slot = ++picks.current[kind]; setBusy("Opening recording…"); resetResult();
+    const current = () => slot === picks.current[kind] && !cancelledSince(token);
     try {
       const analysis = await import("@/lib/audio-comparison"); analysis.validateAudioFile(file);
       const audio = await analysis.decodeRecording(file);
-      if (token !== generation.current) return;
+      if (!current()) return;
       const url = URL.createObjectURL(file); urls.current.push(url);
       const recording = { ...audio, file, url, start: 0, end: audio.duration };
       (kind === "baseline" ? setBaseline : setPerformance)(recording);
-    } catch (e) { if (token === generation.current) setError(e instanceof Error ? e.message : "Recording could not be opened."); }
+    } catch (e) { if (current()) setError(e instanceof Error ? e.message : "Recording could not be opened."); }
     finally { if (token === generation.current) setBusy(""); }
   }
   async function compare() {
