@@ -35,7 +35,7 @@ export function AudioComparison() {
     if (error) throw error; return data;
   } });
   const picks = useRef({ baseline: 0, performance: 0 }), unmounted = useRef(false);
-  useEffect(() => () => { unmounted.current = true; }, []);
+  useEffect(() => { unmounted.current = false; return () => { unmounted.current = true; }; }, []);
   const cancelledSince = (_token: number) => unmounted.current;
   function resetResult() { setResult(null); setSaved(false); attempt.current = null; setError(""); }
   async function choose(file: File | undefined, kind: "baseline" | "performance") {
