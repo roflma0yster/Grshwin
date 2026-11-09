@@ -1,8 +1,8 @@
 # Grshwin remaining features
 - [x] Phase 1: Repair and live-test Basic Pitch microphone scoring (simulated audio; real piano unverified)
 - [x] Phase 2: Share cancellable transcription and aligned note comparison
-- [ ] Phase 3: Add versioned pitch, tempo and dynamics coaching; test private save/reopen
-- [ ] Add Library bar highlighting and automatic scrolling
+- [x] Phase 3: Add versioned pitch, tempo and dynamics coaching; test private save/reopen
+- [x] Add Library bar highlighting and automatic scrolling
 - [ ] Test score following, loops, manual scrolling and mobile layout
 - [x] Uploaded-score hand selection, bar loops, metronome and private playback
 - [x] Make theory completion repeat-safe and add progress retry
