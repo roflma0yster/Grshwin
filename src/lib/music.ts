@@ -25,14 +25,18 @@ export function demoMusicXml(title: string) {
   return `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE score-partwise PUBLIC "-//Recordare//DTD MusicXML 3.1 Partwise//EN" "http://www.musicxml.org/dtds/partwise.dtd"><score-partwise version="3.1"><work><work-title>${safeTitle} (demo excerpt)</work-title></work><part-list><score-part id="P1"><part-name>Piano</part-name></score-part></part-list><part id="P1">${measures}</part></score-partwise>`;
 }
 
-export type PlayNote = { pitch: string; start: number; duration: number; staff: number; measure: number; part?: number };
+export type PlayNote = { pitch: string; start: number; duration: number; staff: number; measure: number; part?: number; fingering?: number };
+
+/** A chord symbol from a MusicXML harmony element, at a beat from the piece start. */
+export type ChordSymbol = { beat: number; label: string };
 
 /** Times are in quarter-note beats. */
-export function parseNotes(xml: string): { notes: PlayNote[]; measureStarts: number[] } {
+export function parseNotes(xml: string): { notes: PlayNote[]; measureStarts: number[]; chords: ChordSymbol[] } {
   const doc = new DOMParser().parseFromString(xml, "application/xml");
   const notes: PlayNote[] = [];
   const measureStarts: number[] = [];
-  if (doc.querySelector("parsererror")) return { notes, measureStarts };
+  const chords: ChordSymbol[] = [];
+  if (doc.querySelector("parsererror")) return { notes, measureStarts, chords };
   const parts = Array.from(doc.querySelectorAll("score-partwise > part"));
   const lengths: number[] = [];
   parts.forEach((part) => {
@@ -56,7 +60,7 @@ export function parseNotes(xml: string): { notes: PlayNote[]; measureStarts: num
       lengths[mi] = Math.max(lengths[mi] ?? 0, end);
     });
   });
-  if (!lengths.length) return { notes, measureStarts };
+  if (!lengths.length) return { notes, measureStarts, chords };
   measureStarts.push(0);
   lengths.forEach((length) => measureStarts.push((measureStarts.at(-1) ?? 0) + length));
   parts.forEach((part, partIndex) => {
@@ -74,6 +78,15 @@ export function parseNotes(xml: string): { notes: PlayNote[]; measureStarts: num
         cursor -= Number(el.querySelector("duration")?.textContent ?? 0) / divisions;
       } else if (el.tagName === "forward") {
         cursor += Number(el.querySelector("duration")?.textContent ?? 0) / divisions;
+      } else if (el.tagName === "harmony") {
+        const root = el.querySelector("root > root-step")?.textContent;
+        if (root) {
+          const alter = Number(el.querySelector("root > root-alter")?.textContent ?? 0);
+          const accidental = alter > 0 ? "#".repeat(alter) : alter < 0 ? "b".repeat(-alter) : "";
+          const kind = el.querySelector("kind")?.textContent?.trim() ?? "";
+          const suffix = kind === "minor" ? "m" : kind && kind !== "major" && kind !== "none" ? ` ${kind}` : "";
+          chords.push({ beat: (measureStarts[mi] ?? 0) + cursor, label: `${root}${accidental}${suffix}` });
+        }
       } else if (el.tagName === "note") {
         if (el.querySelector("grace")) continue;
         const dur = Number(el.querySelector("duration")?.textContent ?? 0) / divisions;
@@ -93,6 +106,8 @@ export function parseNotes(xml: string): { notes: PlayNote[]; measureStarts: num
             measure: mi,
             part: partIndex,
           };
+          const fingering = Number(el.querySelector("notations > technical > fingering")?.textContent);
+          if (Number.isInteger(fingering) && fingering >= 1 && fingering <= 5) note.fingering = fingering;
           const key = `${el.querySelector("voice")?.textContent ?? "1"}:${note.staff}:${note.pitch}`;
           const types = Array.from(el.querySelectorAll("tie, tied")).map((tie) => tie.getAttribute("type"));
           const previous = ties.get(key);
@@ -113,7 +128,7 @@ export function parseNotes(xml: string): { notes: PlayNote[]; measureStarts: num
     }
     });
   });
-  return { notes, measureStarts };
+  return { notes, measureStarts, chords };
 }
 
 export type PlaybackHands = "both" | "right" | "left";
