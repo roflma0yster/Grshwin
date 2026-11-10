@@ -9,7 +9,9 @@ const SEMITONES: Record<string, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, 
 export function pitchToMidi(pitch: string): number | null {
   const match = /^([A-G])(#*|b*)(-?\d+)$/.exec(pitch);
   if (!match) return null;
-  const [, step, accidentals, octaveText] = match;
+  const step = match[1] ?? "";
+  const accidentals = match[2] ?? "";
+  const octaveText = match[3] ?? "4";
   const base = SEMITONES[step];
   if (base === undefined) return null;
   let alter = 0;
