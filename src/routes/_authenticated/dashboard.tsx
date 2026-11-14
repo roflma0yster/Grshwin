@@ -26,7 +26,9 @@ function Dashboard() {
 
   return (
     <>
-      <PageHeader title={`Hello${profile?.display_name ? ", " + profile.display_name : ""}`} subtitle={`${profile?.proficiency ?? ""} · ${profile?.genre ?? ""} · ${profile?.daily_minutes ?? 0} min a day`} />
+      <PageHeader title={`Hello${profile?.display_name ? ", " + profile.display_name : ""}`} subtitle={`${profile?.proficiency ?? ""} · ${profile?.genre ?? ""} · ${profile?.daily_minutes ?? 0} min a day`}>
+        <Button asChild variant="outline" size="sm"><Link to="/onboarding">Update my playing profile</Link></Button>
+      </PageHeader>
       <div className="grid gap-4 sm:grid-cols-2">
         <Stat icon={Flame} label="Day streak" value={streak} />
         <Stat icon={Clock} label="Minutes this week" value={weekly} />

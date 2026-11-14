@@ -1,11 +1,12 @@
 import { pageHead } from "@/lib/head";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { LEVELS } from "@/lib/data";
+import { LEVELS, profileQuery } from "@/lib/data";
+import { DAILY_MINUTES, GENRES, GOALS, INPUT_METHODS, ONBOARDING_DEFAULTS, answersFromProfile, profilePayload } from "@/lib/onboarding";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
@@ -14,12 +15,14 @@ export const Route = createFileRoute("/_authenticated/onboarding")({
 });
 
 type Opt = { value: string; desc?: string };
+const GOAL_DESC: Record<string, string> = { Fun: "Enjoy playing pieces you like.", "Exam prep": "Prepare for a graded exam.", Performance: "Polish pieces to perform." };
+const INPUT_DESC: Record<string, string> = { Acoustic: "Acoustic piano — uses your microphone.", Digital: "Digital piano — connects via MIDI." };
 const STEPS: { key: string; title: string; options: Opt[] }[] = [
-  { key: "genre", title: "What do you love playing?", options: ["Classical", "Jazz", "Blues", "Pop"].map((value) => ({ value })) },
+  { key: "genre", title: "What do you love playing?", options: GENRES.map((value) => ({ value })) },
   { key: "proficiency", title: "Where are you now?", options: LEVELS },
-  { key: "goal", title: "What's your goal?", options: [{ value: "Fun", desc: "Enjoy playing pieces you like." }, { value: "Exam prep", desc: "Prepare for a graded exam." }, { value: "Performance", desc: "Polish pieces to perform." }] },
-  { key: "daily_minutes", title: "Daily practice time", options: ["15", "30", "45", "60"].map((value) => ({ value, desc: `${value} minutes` })) },
-  { key: "input_method", title: "How will you play along?", options: [{ value: "Acoustic", desc: "Acoustic piano — uses your microphone." }, { value: "Digital", desc: "Digital piano — connects via MIDI." }] },
+  { key: "goal", title: "What's your goal?", options: GOALS.map((value) => ({ value, desc: GOAL_DESC[value] })) },
+  { key: "daily_minutes", title: "Daily practice time", options: DAILY_MINUTES.map((m) => ({ value: String(m), desc: `${m} minutes` })) },
+  { key: "input_method", title: "How will you play along?", options: INPUT_METHODS.map((value) => ({ value, desc: INPUT_DESC[value] })) },
 ];
 
 function Onboarding() {
@@ -28,25 +31,28 @@ function Onboarding() {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+  const { data: profile, isLoading: profileLoading } = useQuery(profileQuery);
+  const seeded = useRef(false);
   const s = STEPS[step]!;
+  // Coming back later: start from what is already saved, so nothing is lost by skipping or changing one answer.
+  useEffect(() => {
+    if (profile && !seeded.current) { seeded.current = true; setAnswers((given) => ({ ...answersFromProfile(profile), ...given })); }
+  }, [profile]);
+  const returning = !!profile?.onboarded;
 
-  async function finish() {
+  async function save() {
     setSaving(true);
     const { data: u } = await supabase.auth.getUser();
-    const { error } = await supabase.from("profiles").upsert({
-      id: u.user!.id,
-      genre: answers["genre"] ?? null,
-      proficiency: answers["proficiency"] ?? null,
-      goal: answers["goal"] ?? null,
-      daily_minutes: Number(answers["daily_minutes"]),
-      input_method: answers["input_method"] ?? null,
-      onboarded: true,
-    });
+    // Any question left unanswered gets its default, so skipping always saves a complete profile.
+    const { error } = await supabase.from("profiles").upsert(profilePayload(u.user!.id, answers));
     setSaving(false);
     if (error) { toast.error(error.message); return; }
     await qc.invalidateQueries({ queryKey: ["profile"] });
     navigate({ to: "/dashboard" });
   }
+  const finish = save;
+  // First visit: skip saves the defaults. Returning: nothing is saved, just go back.
+  function skip() { if (returning) navigate({ to: "/dashboard" }); else void save(); }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
@@ -81,10 +87,14 @@ function Onboarding() {
               Continue
             </Button>
           ) : (
-            <Button disabled={!answers[s.key] || saving} onClick={finish}>
+            <Button disabled={!answers[s.key] || saving || profileLoading} onClick={finish}>
               Start practicing
             </Button>
           )}
+        </div>
+        <div className="mt-6 text-center">
+          <Button variant="link" disabled={saving || profileLoading} onClick={skip}>{returning ? "Cancel" : "Skip for now"}</Button>
+          {!returning && <p className="mt-1 text-xs text-muted-foreground">We'll use standard settings ({ONBOARDING_DEFAULTS.proficiency}, {ONBOARDING_DEFAULTS.genre}, {ONBOARDING_DEFAULTS.daily_minutes} minutes a day) for anything you haven't answered. You can change them any time from your dashboard.</p>}
         </div>
       </div>
     </div>
