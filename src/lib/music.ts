@@ -1,4 +1,6 @@
 // Demo score generator and browser-safe MusicXML playback data.
+import { chordLabel, tidyChords } from "@/lib/chord-label";
+
 
 const RH = ["E5", "D5", "C5", "D5", "E5", "E5", "E5", "R", "D5", "D5", "D5", "R", "E5", "G5", "G5", "R", "E5", "D5", "C5", "D5", "E5", "E5", "E5", "C5", "D5", "D5", "E5", "D5", "C5", "R", "R", "R"];
 const LH = ["C3", "G3", "C3", "G3", "G2", "D3", "C3", "E3", "C3", "G3", "C3", "G3", "G2", "D3", "C3", "R"];
@@ -79,13 +81,14 @@ export function parseNotes(xml: string): { notes: PlayNote[]; measureStarts: num
       } else if (el.tagName === "forward") {
         cursor += Number(el.querySelector("duration")?.textContent ?? 0) / divisions;
       } else if (el.tagName === "harmony") {
-        const root = el.querySelector("root > root-step")?.textContent;
+        const root = el.querySelector("root > root-step")?.textContent?.trim();
         if (root) {
-          const alter = Number(el.querySelector("root > root-alter")?.textContent ?? 0);
-          const accidental = alter > 0 ? "#".repeat(alter) : alter < 0 ? "b".repeat(-alter) : "";
-          const kind = el.querySelector("kind")?.textContent?.trim() ?? "";
-          const suffix = kind === "minor" ? "m" : kind && kind !== "major" && kind !== "none" ? ` ${kind}` : "";
-          chords.push({ beat: (measureStarts[mi] ?? 0) + cursor, label: `${root}${accidental}${suffix}` });
+          const label = chordLabel({
+            rootStep: root, rootAlter: Number(el.querySelector("root > root-alter")?.textContent ?? 0),
+            kind: el.querySelector("kind")?.textContent?.trim() ?? "", kindText: el.querySelector("kind")?.getAttribute("text") ?? "",
+            bassStep: el.querySelector("bass > bass-step")?.textContent?.trim() ?? "", bassAlter: Number(el.querySelector("bass > bass-alter")?.textContent ?? 0),
+          });
+          if (label) chords.push({ beat: (measureStarts[mi] ?? 0) + cursor, label });
         }
       } else if (el.tagName === "note") {
         if (el.querySelector("grace")) continue;
@@ -128,7 +131,7 @@ export function parseNotes(xml: string): { notes: PlayNote[]; measureStarts: num
     }
     });
   });
-  return { notes, measureStarts, chords };
+  return { notes, measureStarts, chords: tidyChords(chords) };
 }
 
 export type PlaybackHands = "both" | "right" | "left";
