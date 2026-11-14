@@ -10,9 +10,12 @@ import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { demoMusicXml, parseNotes } from "@/lib/music";
-import { toast } from "sonner";
 import { followSuspended } from "@/lib/score-following";
 import { usePlayback } from "@/hooks/use-playback";
+import { usePlayAlongSettings } from "@/hooks/use-play-along";
+import { FallingNotes } from "@/components/FallingNotes";
+import { PlayAlongControls } from "@/components/PlayAlongControls";
+import { playRole } from "@/lib/play-along";
 import { InstrumentSelect, useInstrumentChoice } from "@/components/InstrumentSelect";
 
 export const Route = createFileRoute("/_authenticated/piece/$id")({
@@ -62,11 +65,13 @@ function PiecePlayer() {
   useEffect(() => { setFrom(1); }, [xml]);
 
   const [instrumentId, setInstrumentId] = useInstrumentChoice();
-  const { playing, busy, current, activeInstrument, play: startPlayback, stop } = usePlayback(parsed, {
+  const [along, updateAlong] = usePlayAlongSettings();
+  const role = playRole(along, hands);
+  const { playing, busy, current, activeInstrument, play: startPlayback, stop, position } = usePlayback(parsed, {
     onBar: () => setFollowRequest((value) => value + 1),
     onStart: () => setSuspended((value) => followSuspended(value, "start")),
   });
-  const play = () => startPlayback({ tempo, hands, metronome, loop, from, to, instrumentId });
+  const play = () => startPlayback({ tempo, hands, metronome, loop, from, to, instrumentId, audible: role.audible, countInBars: role.countInBars });
   const locked = playing || busy;
 
   if (!piece) return <p className="text-muted-foreground">Loading…</p>;
@@ -114,6 +119,8 @@ function PiecePlayer() {
             </select>
           </div>
         </div>
+        <div className="md:col-span-3"><PlayAlongControls settings={along} update={updateAlong} locked={locked} /></div>
+        {along.showRoll && <div className="md:col-span-3"><FallingNotes parsed={parsed} loop={loop} from={from} to={to} tempo={tempo} playing={playing} getPosition={position} settings={along} role={role} bar={current} /></div>}
         <div className="flex flex-wrap items-center gap-3 md:col-span-3">
           <Switch id="auto-scroll" checked={autoScroll} onCheckedChange={(value) => { setAutoScroll(value); if (value) { setSuspended(false); setFollowRequest((n) => n + 1); } }} />
           <Label htmlFor="auto-scroll">Auto-scroll</Label>

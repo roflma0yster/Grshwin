@@ -8,6 +8,10 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { InstrumentSelect, useInstrumentChoice } from "@/components/InstrumentSelect";
 import { usePlayback } from "@/hooks/use-playback";
+import { usePlayAlongSettings } from "@/hooks/use-play-along";
+import { FallingNotes } from "@/components/FallingNotes";
+import { PlayAlongControls } from "@/components/PlayAlongControls";
+import { playRole } from "@/lib/play-along";
 import { parseNotes, type PlaybackHands } from "@/lib/music";
 
 export function ScorePlayback({ xml }: { xml: string }) {
@@ -19,9 +23,11 @@ export function ScorePlayback({ xml }: { xml: string }) {
   const [from, setFrom] = useState(1);
   const [to, setTo] = useState(1);
   const [instrumentId, setInstrumentId] = useInstrumentChoice();
-  const { playing, busy, current, bars, activeInstrument, play: startPlayback, stop } = usePlayback(parsed);
+  const [along, updateAlong] = usePlayAlongSettings();
+  const role = playRole(along, hands);
+  const { playing, busy, current, bars, activeInstrument, play: startPlayback, stop, position } = usePlayback(parsed);
   useEffect(() => { setFrom(1); setTo(Math.min(4, bars) || 1); }, [xml, bars]);
-  const play = () => startPlayback({ tempo, hands, metronome, loop, from, to, instrumentId });
+  const play = () => startPlayback({ tempo, hands, metronome, loop, from, to, instrumentId, audible: role.audible, countInBars: role.countInBars });
   const locked = playing || busy;
   return <section aria-label="Score playback" className="mt-6 space-y-4 border-y py-4">
     <div className="flex flex-wrap items-center gap-6">
@@ -41,5 +47,7 @@ export function ScorePlayback({ xml }: { xml: string }) {
         <Select value={String(to)} onValueChange={(value) => setTo(Number(value))} disabled={locked || !loop}><SelectTrigger aria-label="Last loop bar" className="w-16"><SelectValue /></SelectTrigger><SelectContent>{Array.from({ length: bars }, (_, i) => i + 1).filter((bar) => bar >= from).map((bar) => <SelectItem key={bar} value={String(bar)}>{bar}</SelectItem>)}</SelectContent></Select>
       </div>
     </div>
+    <PlayAlongControls settings={along} update={updateAlong} locked={locked} />
+    {along.showRoll && <FallingNotes parsed={parsed} loop={loop} from={from} to={to} tempo={tempo} playing={playing} getPosition={position} settings={along} role={role} bar={current} />}
   </section>;
 }
