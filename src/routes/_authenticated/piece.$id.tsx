@@ -1,10 +1,11 @@
 import { pageHead } from "@/lib/head";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Play, Square, LocateFixed } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { SheetMusic } from "@/components/SheetMusic";
+import { ScoreStage } from "@/components/ScoreStage";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
@@ -56,7 +57,6 @@ function PiecePlayer() {
   const [autoScroll, setAutoScroll] = useState(true);
   const [suspended, setSuspended] = useState(false);
   const [followRequest, setFollowRequest] = useState(0);
-  const controlsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { if (piece) setTempo(piece.default_tempo); }, [piece]);
   const parsed = useMemo(() => (xml ? parseNotes(xml) : null), [xml]);
@@ -88,48 +88,48 @@ function PiecePlayer() {
         </p>
       )}
 
-      <div ref={controlsRef} data-score-controls className="sticky top-0 z-10 mt-6 grid gap-4 rounded-2xl border bg-card p-4 shadow-soft md:grid-cols-[auto_1fr_auto] md:items-center">
-        <Button size="lg" onClick={playing ? stop : play} disabled={!parsed || busy}>
-          {playing ? <><Square className="h-4 w-4" /> Stop</> : <><Play className="h-4 w-4" /> Play</>}
-        </Button>
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm"><span>Tempo</span><span className="font-semibold">♩ = {tempo}</span></div>
-          <Slider min={30} max={180} step={2} value={[tempo]} onValueChange={([v]) => setTempo(v ?? 80)} disabled={locked} />
-        </div>
-        <div className="flex items-center gap-2">
-          <Switch id="met" checked={metronome} onCheckedChange={setMetronome} disabled={locked} />
-          <Label htmlFor="met">Metronome</Label>
-        </div>
-        <div className="flex flex-wrap items-center gap-2 md:col-span-3">
-          {(["both", "right", "left"] as Hands[]).map((h) => (
-            <Button variant={hands === h ? "secondary" : "outline"} size="sm" key={h} disabled={locked} onClick={() => setHands(h)} className="capitalize">
-              {h === "both" ? "Hands together" : `${h} hand`}
-            </Button>
-          ))}
-          <InstrumentSelect value={instrumentId} onChange={setInstrumentId} playingInstrument={activeInstrument} />
-          <div className="flex flex-wrap items-center gap-2 text-sm md:ml-auto">
-            <Switch id="loop" checked={loop} onCheckedChange={setLoop} disabled={locked} />
-            <Label htmlFor="loop">Loop bars</Label>
-            <select aria-label="First loop bar" className="rounded border bg-background px-1" value={from} disabled={locked} onChange={(e) => { const v = +e.target.value; setFrom(v); if (to < v) setTo(v); }}>
-              {Array.from({ length: measureCount }, (_, i) => <option key={i}>{i + 1}</option>)}
-            </select>
-            –
-            <select aria-label="Last loop bar" className="rounded border bg-background px-1" value={to} disabled={locked} onChange={(e) => setTo(Math.max(from, +e.target.value))}>
-              {Array.from({ length: measureCount }, (_, i) => <option key={i}>{i + 1}</option>)}
-            </select>
+      <ScoreStage
+        toolbar={<>
+          <Button size="lg" onClick={playing ? stop : play} disabled={!parsed || busy}>
+            {playing ? <><Square className="h-4 w-4" /> Stop</> : <><Play className="h-4 w-4" /> Play</>}
+          </Button>
+          <div className="min-w-40 flex-1 space-y-1 md:max-w-xs">
+            <div className="flex justify-between text-sm"><span>Tempo</span><span className="font-semibold">♩ = {tempo}</span></div>
+            <Slider aria-label="Tempo" min={30} max={180} step={2} value={[tempo]} onValueChange={([v]) => setTempo(v ?? 80)} disabled={locked} />
           </div>
-        </div>
-        <div className="md:col-span-3"><PlayAlongControls settings={along} update={updateAlong} locked={locked} /></div>
-        {along.showRoll && <div className="md:col-span-3"><FallingNotes parsed={parsed} loop={loop} from={from} to={to} tempo={tempo} playing={playing} getPosition={position} settings={along} role={role} bar={current} /></div>}
-        <div className="flex flex-wrap items-center gap-3 md:col-span-3">
-          <Switch id="auto-scroll" checked={autoScroll} onCheckedChange={(value) => { setAutoScroll(value); if (value) { setSuspended(false); setFollowRequest((n) => n + 1); } }} />
-          <Label htmlFor="auto-scroll">Auto-scroll</Label>
-          {autoScroll && suspended && <Button variant="outline" size="sm" onClick={() => { setSuspended((value) => followSuspended(value, "resume")); setFollowRequest((n) => n + 1); }}><LocateFixed className="h-4 w-4" />Resume auto-scroll</Button>}
           <p role="status" className="text-sm text-muted-foreground">{current ? `Bar ${current} / ${measureCount}` : `${measureCount} bars`}</p>
-        </div>
-      </div>
-
-      <div className="mt-6">{xml && <SheetMusic xml={xml} zoom={1.2} activeBar={current} follow={playing && autoScroll && !suspended} followRequest={followRequest} controlsRef={controlsRef} onManualScroll={() => { if (playing) setSuspended((value) => followSuspended(value, "manual")); }} />}</div>
+          {autoScroll && suspended && <Button variant="outline" size="sm" onClick={() => { setSuspended((value) => followSuspended(value, "resume")); setFollowRequest((n) => n + 1); }}><LocateFixed className="h-4 w-4" />Resume auto-scroll</Button>}
+        </>}
+        options={<>
+          <div className="flex flex-wrap items-center gap-2">
+            {(["both", "right", "left"] as Hands[]).map((h) => (
+              <Button variant={hands === h ? "secondary" : "outline"} size="sm" key={h} disabled={locked} onClick={() => setHands(h)} className="capitalize">
+                {h === "both" ? "Hands together" : `${h} hand`}
+              </Button>
+            ))}
+            <InstrumentSelect value={instrumentId} onChange={setInstrumentId} playingInstrument={activeInstrument} />
+            <div className="flex items-center gap-2"><Switch id="met" checked={metronome} onCheckedChange={setMetronome} disabled={locked} /><Label htmlFor="met">Metronome</Label></div>
+            <div className="flex flex-wrap items-center gap-2 md:ml-auto">
+              <Switch id="loop" checked={loop} onCheckedChange={setLoop} disabled={locked} />
+              <Label htmlFor="loop">Loop bars</Label>
+              <select aria-label="First loop bar" className="rounded border bg-background px-1" value={from} disabled={locked} onChange={(e) => { const v = +e.target.value; setFrom(v); if (to < v) setTo(v); }}>
+                {Array.from({ length: measureCount }, (_, i) => <option key={i}>{i + 1}</option>)}
+              </select>
+              –
+              <select aria-label="Last loop bar" className="rounded border bg-background px-1" value={to} disabled={locked} onChange={(e) => setTo(Math.max(from, +e.target.value))}>
+                {Array.from({ length: measureCount }, (_, i) => <option key={i}>{i + 1}</option>)}
+              </select>
+            </div>
+          </div>
+          <PlayAlongControls settings={along} update={updateAlong} locked={locked} />
+          <div className="flex items-center gap-3">
+            <Switch id="auto-scroll" checked={autoScroll} onCheckedChange={(value) => { setAutoScroll(value); if (value) { setSuspended(false); setFollowRequest((n) => n + 1); } }} />
+            <Label htmlFor="auto-scroll">Auto-scroll</Label>
+          </div>
+        </>}
+        sheet={xml ? <SheetMusic xml={xml} zoom={1.2} activeBar={current} follow={playing && autoScroll && !suspended} followRequest={followRequest} onManualScroll={() => { if (playing) setSuspended((value) => followSuspended(value, "manual")); }} /> : <p className="p-4 text-muted-foreground">Loading score…</p>}
+        roll={along.showRoll ? <FallingNotes parsed={parsed} loop={loop} from={from} to={to} tempo={tempo} playing={playing} getPosition={position} settings={along} role={role} bar={current} /> : null}
+      />
       <p className="mt-4 text-xs text-muted-foreground">{piece.license}{piece.source_url && <> · <a className="underline" href={piece.source_url} target="_blank" rel="noreferrer">Source</a></>}</p>
     </>
   );

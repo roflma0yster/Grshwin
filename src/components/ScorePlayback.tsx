@@ -9,10 +9,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { InstrumentSelect, useInstrumentChoice } from "@/components/InstrumentSelect";
 import { usePlayback } from "@/hooks/use-playback";
 import { usePlayAlongSettings } from "@/hooks/use-play-along";
+import { ScoreStage } from "@/components/ScoreStage";
+import { SheetMusic } from "@/components/SheetMusic";
 import { FallingNotes } from "@/components/FallingNotes";
 import { PlayAlongControls } from "@/components/PlayAlongControls";
 import { playRole } from "@/lib/play-along";
 import { parseNotes, type PlaybackHands } from "@/lib/music";
+import { followSuspended } from "@/lib/score-following";
+import { LocateFixed } from "lucide-react";
 
 export function ScorePlayback({ xml }: { xml: string }) {
   const parsed = useMemo(() => parseNotes(xml), [xml]);
@@ -25,29 +29,38 @@ export function ScorePlayback({ xml }: { xml: string }) {
   const [instrumentId, setInstrumentId] = useInstrumentChoice();
   const [along, updateAlong] = usePlayAlongSettings();
   const role = playRole(along, hands);
-  const { playing, busy, current, bars, activeInstrument, play: startPlayback, stop, position } = usePlayback(parsed);
+  const [suspended, setSuspended] = useState(false);
+  const [followRequest, setFollowRequest] = useState(0);
+  const { playing, busy, current, bars, activeInstrument, play: startPlayback, stop, position } = usePlayback(parsed, {
+    onBar: () => setFollowRequest((value) => value + 1),
+    onStart: () => setSuspended((value) => followSuspended(value, "start")),
+  });
   useEffect(() => { setFrom(1); setTo(Math.min(4, bars) || 1); }, [xml, bars]);
   const play = () => startPlayback({ tempo, hands, metronome, loop, from, to, instrumentId, audible: role.audible, countInBars: role.countInBars });
   const locked = playing || busy;
-  return <section aria-label="Score playback" className="mt-6 space-y-4 border-y py-4">
-    <div className="flex flex-wrap items-center gap-6">
+  return <ScoreStage
+    toolbar={<>
       <Button disabled={busy || !parsed.notes.length} onClick={playing ? stop : play}>{playing ? <Square className="h-4 w-4" /> : <Play className="h-4 w-4" />}{playing ? "Stop" : "Play"}</Button>
-      <div className="min-w-40 flex-1 space-y-2"><p className="text-sm">Tempo · ♩ = {tempo}</p><Slider aria-label="Tempo" value={[tempo]} min={30} max={180} step={2} disabled={locked} onValueChange={([v]) => setTempo(v ?? 80)} /></div>
-      <p role="status" className="min-w-20 text-sm text-muted-foreground">{current ? `Bar ${current} / ${bars}` : `${bars} bars`}</p>
-    </div>
-    <div className="flex flex-wrap items-center justify-between gap-4">
-      <ToggleGroup type="single" value={hands} onValueChange={(value) => { if (value === "both" || value === "left" || value === "right") setHands(value); }} disabled={locked} aria-label="Hands" variant="outline">
-        <ToggleGroupItem value="both">Both hands</ToggleGroupItem><ToggleGroupItem value="right">Right hand</ToggleGroupItem><ToggleGroupItem value="left">Left hand</ToggleGroupItem>
-      </ToggleGroup>
-      <InstrumentSelect value={instrumentId} onChange={setInstrumentId} playingInstrument={activeInstrument} />
-      <div className="flex items-center gap-2"><Switch id="score-metronome" checked={metronome} onCheckedChange={setMetronome} disabled={locked} /><Label htmlFor="score-metronome">Metronome</Label></div>
-      <div className="flex flex-wrap items-center gap-2"><Switch id="score-loop" checked={loop} onCheckedChange={setLoop} disabled={locked || !bars} /><Label htmlFor="score-loop">Loop bars</Label>
-        <Select value={String(from)} onValueChange={(value) => { const bar = Number(value); setFrom(bar); setTo(Math.max(bar, to)); }} disabled={locked || !loop}><SelectTrigger aria-label="First loop bar" className="w-16"><SelectValue /></SelectTrigger><SelectContent>{Array.from({ length: bars }, (_, i) => <SelectItem key={i} value={String(i + 1)}>{i + 1}</SelectItem>)}</SelectContent></Select>
-        <span aria-hidden="true">–</span>
-        <Select value={String(to)} onValueChange={(value) => setTo(Number(value))} disabled={locked || !loop}><SelectTrigger aria-label="Last loop bar" className="w-16"><SelectValue /></SelectTrigger><SelectContent>{Array.from({ length: bars }, (_, i) => i + 1).filter((bar) => bar >= from).map((bar) => <SelectItem key={bar} value={String(bar)}>{bar}</SelectItem>)}</SelectContent></Select>
+      <div className="min-w-40 flex-1 space-y-1 md:max-w-xs"><p className="text-sm">Tempo · ♩ = {tempo}</p><Slider aria-label="Tempo" value={[tempo]} min={30} max={180} step={2} disabled={locked} onValueChange={([v]) => setTempo(v ?? 80)} /></div>
+      <p role="status" className="text-sm text-muted-foreground">{current ? `Bar ${current} / ${bars}` : `${bars} bars`}</p>
+      {suspended && playing && <Button variant="outline" size="sm" onClick={() => { setSuspended((value) => followSuspended(value, "resume")); setFollowRequest((n) => n + 1); }}><LocateFixed className="h-4 w-4" />Resume auto-scroll</Button>}
+    </>}
+    options={<>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <ToggleGroup type="single" value={hands} onValueChange={(value) => { if (value === "both" || value === "left" || value === "right") setHands(value); }} disabled={locked} aria-label="Hands" variant="outline">
+          <ToggleGroupItem value="both">Both hands</ToggleGroupItem><ToggleGroupItem value="right">Right hand</ToggleGroupItem><ToggleGroupItem value="left">Left hand</ToggleGroupItem>
+        </ToggleGroup>
+        <InstrumentSelect value={instrumentId} onChange={setInstrumentId} playingInstrument={activeInstrument} />
+        <div className="flex items-center gap-2"><Switch id="score-metronome" checked={metronome} onCheckedChange={setMetronome} disabled={locked} /><Label htmlFor="score-metronome">Metronome</Label></div>
+        <div className="flex flex-wrap items-center gap-2"><Switch id="score-loop" checked={loop} onCheckedChange={setLoop} disabled={locked || !bars} /><Label htmlFor="score-loop">Loop bars</Label>
+          <Select value={String(from)} onValueChange={(value) => { const bar = Number(value); setFrom(bar); setTo(Math.max(bar, to)); }} disabled={locked || !loop}><SelectTrigger aria-label="First loop bar" className="w-16"><SelectValue /></SelectTrigger><SelectContent>{Array.from({ length: bars }, (_, i) => <SelectItem key={i} value={String(i + 1)}>{i + 1}</SelectItem>)}</SelectContent></Select>
+          <span aria-hidden="true">–</span>
+          <Select value={String(to)} onValueChange={(value) => setTo(Number(value))} disabled={locked || !loop}><SelectTrigger aria-label="Last loop bar" className="w-16"><SelectValue /></SelectTrigger><SelectContent>{Array.from({ length: bars }, (_, i) => i + 1).filter((bar) => bar >= from).map((bar) => <SelectItem key={bar} value={String(bar)}>{bar}</SelectItem>)}</SelectContent></Select>
+        </div>
       </div>
-    </div>
-    <PlayAlongControls settings={along} update={updateAlong} locked={locked} />
-    {along.showRoll && <FallingNotes parsed={parsed} loop={loop} from={from} to={to} tempo={tempo} playing={playing} getPosition={position} settings={along} role={role} bar={current} />}
-  </section>;
+      <PlayAlongControls settings={along} update={updateAlong} locked={locked} />
+    </>}
+    sheet={<SheetMusic xml={xml} zoom={1.1} activeBar={current} follow={playing && !suspended} followRequest={followRequest} onManualScroll={() => { if (playing) setSuspended((value) => followSuspended(value, "manual")); }} />}
+    roll={along.showRoll ? <FallingNotes parsed={parsed} loop={loop} from={from} to={to} tempo={tempo} playing={playing} getPosition={position} settings={along} role={role} bar={current} /> : null}
+  />;
 }
