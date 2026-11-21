@@ -14,7 +14,8 @@
 - AI calls live in `src/lib/ai/*.server.ts`, invoked from `*.functions.ts` server functions with `requireSupabaseAuth` — keeps keys and prompts server-side.
 - Curriculum output is validated server-side so every `pieceId` exists in `pieces` — the AI must never invent repertoire.
 - Sheet music (OpenSheetMusicDisplay) and audio (Tone.js) are dynamically imported in effects/handlers — both are browser-only.
-- Library score following uses audio-clock Draw callbacks and OSMD graphical measure bounds through its page backend; manual scroll gestures suspend following without reacting to programmatic scroll events.
+- Score following happens inside the sheet pane, never by scrolling the page: audio-clock Draw callbacks and OSMD graphical measure bounds move the pane to the active line (`src/lib/score-stage.ts`); manual gestures on the pane suspend following without reacting to programmatic scrolls.
+- Both players render through `ScoreStage`: compact controls, the sheet pane above, and the falling-notes roll below as separate grid rows (each exactly half the space under the controls) so the roll never overlaps the score. `FallingNotes` takes its height from its container; do not give it its own height.
 - Resolve automation-events to its native ES module — its legacy browser bundle breaks audio initialization when shared dependencies are bundled.
 - Pieces without a MusicXML file fall back to a generated demo excerpt (`src/lib/music.ts`) so the player always works.
 - MusicXML playback aligns all parts on shared bar boundaries, sustains ties, and clips notes to practice ranges — uploaded scores must preserve their musical timing.

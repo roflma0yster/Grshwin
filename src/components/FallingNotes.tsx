@@ -20,36 +20,38 @@ type Props = {
   bar: number | null;
 };
 
-const clamp = (x: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, x));
-
 /**
  * The note highway. All drawing is in src/lib/piano-roll-draw.ts; this component only owns the canvas,
- * its size, and the animation frame loop. It draws imperatively (no React state per frame), only runs
+ * its size (taken from its container, never chosen here), and the animation frame loop. It draws imperatively (no React state per frame), only runs
  * the loop while playing and the tab is visible, and shows a still preview of the first beats otherwise.
  */
 export function FallingNotes({ parsed, loop, from, to, tempo, playing, getPosition, settings, role, bar }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [width, setWidth] = useState(0);
+  const [size, setSize] = useState({ width: 0, height: 0 });
+  const { width, height } = size;
   const model = useMemo(() => (parsed ? buildRollModel(parsed, loop, from, to) : null), [parsed, loop, from, to]);
   const latest = useRef({ getPosition, tempo, loop, settings, role });
   latest.current = { getPosition, tempo, loop, settings, role };
   const windowStart = useRef(0);
-  const height = clamp(Math.round(width * 0.5), 200, 340);
   // a stable key: the hands Set is a new object each render, which must not restart the drawing loop
   const yourKey = role.yourStaffs ? [...role.yourStaffs].sort().join(",") : "all";
 
   useEffect(() => {
     const el = wrapRef.current;
     if (!el) return;
-    const observer = new ResizeObserver((entries) => { const w = Math.floor(entries[0]?.contentRect.width ?? 0); if (w > 0) setWidth(w); });
+    // The stage decides the height (half of it); the canvas simply fills what it is given.
+    const observer = new ResizeObserver((entries) => {
+      const w = Math.floor(entries[0]?.contentRect.width ?? 0), h = Math.floor(entries[0]?.contentRect.height ?? 0);
+      if (w > 0 && h > 0) setSize((old) => (old.width === w && old.height === h ? old : { width: w, height: h }));
+    });
     observer.observe(el);
     return () => observer.disconnect();
   }, [settings.showRoll]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas || !model || width <= 0) return;
+    if (!canvas || !model || width <= 0 || height <= 0) return;
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     canvas.width = Math.round(width * dpr); canvas.height = Math.round(height * dpr);
     const ctx = canvas.getContext("2d");
@@ -79,8 +81,8 @@ export function FallingNotes({ parsed, loop, from, to, tempo, playing, getPositi
   if (!settings.showRoll) return null;
   const label = `Falling notes. Upcoming notes for each hand fall toward the piano keyboard${bar ? `. Current bar ${bar}` : ""}.${role.yourStaffs ? " Your hand is shown bright; the other hand is backing." : ""}`;
   return (
-    <div ref={wrapRef} className="w-full overflow-hidden rounded-xl border bg-black/40">
-      <canvas ref={canvasRef} role="img" aria-label={label} style={{ width: "100%", height, display: "block" }} />
+    <div ref={wrapRef} className="h-full w-full overflow-hidden rounded-xl border bg-black/40">
+      <canvas ref={canvasRef} role="img" aria-label={label} style={{ width, height, display: "block" }} />
     </div>
   );
 }
