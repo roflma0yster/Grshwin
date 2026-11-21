@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import type { StoredComparison, Finding } from "@/lib/comparison-feedback";
+import type { DetectedNote } from "@/lib/performance-scoring";
 import { ComparisonFeedback } from "@/components/ComparisonFeedback";
 
 type Recording = { file: File; url: string; samples: Float32Array; sampleRate: number; duration: number; start: number; end: number };
@@ -64,6 +65,7 @@ export function AudioComparison() {
       const a = analysis.extractFeatures(baseline.samples, baseline.sampleRate, baseline.start, baseline.end);
       const b = analysis.extractFeatures(performance.samples, performance.sampleRate, performance.start, performance.end);
       const compared = analysis.compareFeatures(a, b);
+      let noteLists: { reference: DetectedNote[]; performance: DetectedNote[] } | undefined;
       try {
         const { transcribe } = await import("@/lib/transcription");
         const reference = await transcribe(baseline.samples, baseline.sampleRate, (p) => { if (token === generation.current) setBusy(`Analysing baseline notes · ${Math.round(p * 100)}%`); }, { start: baseline.start, end: baseline.end, signal: controller.signal });
@@ -71,6 +73,7 @@ export function AudioComparison() {
         const { compareNotes } = await import("@/lib/note-comparison");
         if (!reference.length || !played.length) throw new Error("No reliable notes were detected in one of the recordings.");
         compared.noteFeedback = compareNotes(reference, played, compared.segments);
+        noteLists = { reference, performance: played }; // the rules that sort differences need the notes themselves
         compared.confidence = Math.round(Math.min(a.tonalFraction, b.tonalFraction) * 90);
         if (Math.abs(compared.similarity - compared.noteFeedback.accuracy) > 30) { compared.confidence = Math.min(40, compared.confidence); compared.warnings.push("Pitch patterns and transcribed notes disagree. Octave or voicing differences, or transcription errors, may explain the result."); }
       } catch (e) {
@@ -78,7 +81,7 @@ export function AudioComparison() {
         console.error("Note feedback unavailable", e);
         compared.noteUnavailable = e instanceof Error ? e.message : "Note detection failed.";
       }
-      if (token === generation.current && !controller.signal.aborted) { const { detailedFeedback } = await import("@/lib/comparison-feedback"); setResult(detailedFeedback(compared, a, b)); attempt.current = crypto.randomUUID(); }
+      if (token === generation.current && !controller.signal.aborted) { const { detailedFeedback } = await import("@/lib/comparison-feedback"); setResult(detailedFeedback(compared, a, b, noteLists)); attempt.current = crypto.randomUUID(); }
     } catch (e) { if (token === generation.current) setError(e instanceof Error ? e.message : "Comparison failed. Try another excerpt."); }
     finally { if (token === generation.current) { setBusy(""); cancellation.current = null; } }
   }
